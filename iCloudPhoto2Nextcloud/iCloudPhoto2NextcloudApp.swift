@@ -2,31 +2,46 @@
 //  iCloudPhoto2NextcloudApp.swift
 //  iCloudPhoto2Nextcloud
 //
-//  Created by Alexandre de Lemeny-Makedone on 04/08/2026.
-//
 
 import SwiftUI
 import SwiftData
 
 @main
 struct iCloudPhoto2NextcloudApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    @State private var engine = SyncEngine.shared
+    
+    init() {
+        // Start background Sync Engine
+        SyncEngine.shared.startEngine()
+    }
+    
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        // MenuBarExtra scene (Status Bar Icon + Popover)
+        MenuBarExtra {
+            StatusMenuView()
+        } label: {
+            let iconName = menuBarIconName(for: engine.state)
+            Image(systemName: iconName)
         }
-        .modelContainer(sharedModelContainer)
+        .menuBarExtraStyle(.window)
+        
+        // Detachable Configuration & Logs Window
+        Window("Réglages iCloudPhoto2Nextcloud", id: "settingsWindow") {
+            ConfigurationWindow()
+        }
+        .windowResizability(.contentSize)
+    }
+    
+    private func menuBarIconName(for state: EngineState) -> String {
+        switch state {
+        case .idle:
+            return "photo.badge.checkmark"
+        case .syncing:
+            return "arrow.triangle.2.circlepath"
+        case .paused:
+            return "pause.circle"
+        case .unauthorized, .error:
+            return "exclamationmark.triangle"
+        }
     }
 }
