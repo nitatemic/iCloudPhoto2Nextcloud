@@ -1,0 +1,69 @@
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build macOS Binaries (Universal, Intel, Apple Silicon)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build Universal Binary (x86_64 + arm64)
+        run: |
+          xcodebuild -scheme iCloudPhoto2Nextcloud \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedDataUniversal \
+            ARCHS="x86_64 arm64" \
+            ONLY_ACTIVE_ARCH=NO \
+            clean build
+          
+          mkdir -p build/artifacts
+          ditto -c -k --sequesterRsrc \
+            build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/artifacts/iCloudPhoto2Nextcloud-Universal.zip
+
+      - name: Build Intel Binary (x86_64)
+        run: |
+          xcodebuild -scheme iCloudPhoto2Nextcloud \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedDataIntel \
+            ARCHS="x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
+            clean build
+
+          ditto -c -k --sequesterRsrc \
+            build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/artifacts/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip
+
+      - name: Build Apple Silicon Binary (arm64)
+        run: |
+          xcodebuild -scheme iCloudPhoto2Nextcloud \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedDataARM64 \
+            ARCHS="arm64" \
+            ONLY_ACTIVE_ARCH=NO \
+            clean build
+
+          ditto -c -k --sequesterRsrc \
+            build/DerivedDataARM64/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/artifacts/iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-App-Builds
+          path: build/artifacts/*.zip
+          if-no-files-found: error
