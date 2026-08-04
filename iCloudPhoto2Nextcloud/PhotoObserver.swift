@@ -35,7 +35,7 @@ public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unche
     public weak var delegate: PhotoObserverDelegate?
     
     private var fetchResult: PHFetchResult<PHAsset>?
-    private let queue = DispatchQueue(label: "com.icloudphoto2nextcloud.photoobserver", qos: .utility)
+    private let queue = DispatchQueue(label: "com.icloudphoto2nextcloud.photoobserver", qos: .userInitiated)
     
     private override init() {
         super.init()
@@ -76,7 +76,14 @@ public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unche
     // MARK: - PHPhotoLibraryChangeObserver
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
         queue.async { [weak self] in
-            guard let self = self, let currentFetchResult = self.fetchResult else { return }
+            guard let self = self else { return }
+            
+            guard let currentFetchResult = self.fetchResult else {
+                let options = PHFetchOptions()
+                options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+                self.fetchResult = PHAsset.fetchAssets(with: options)
+                return
+            }
             
             guard let changeDetails = changeInstance.changeDetails(for: currentFetchResult) else {
                 return
