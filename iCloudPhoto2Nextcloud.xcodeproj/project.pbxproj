@@ -187,11 +187,12 @@
 				};
 			};
 			buildConfigurationList = 38504BCC30225C56006D2EA2 /* Build configuration list for PBXProject "iCloudPhoto2Nextcloud" */;
-			developmentRegion = en;
+			developmentRegion = fr;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = 38504BC830225C56006D2EA2;
 			minimizedProjectReferenceProxies = 1;
@@ -405,7 +406,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto t Nextcloud";
+				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto to Nextcloud";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -444,7 +445,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto t Nextcloud";
+				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto to Nextcloud";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
