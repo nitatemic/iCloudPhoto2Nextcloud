@@ -39,7 +39,10 @@ public actor NextcloudWebDAVService {
     // WebDAV v2 Chunk size threshold (10 MB)
     private let chunkSizeThreshold: Int64 = 10 * 1024 * 1024
     private let chunkSize: Int64 = 5 * 1024 * 1024 // 5 MB chunks
-    
+
+    /// Dossiers distants déjà créés durant cette session (évite une chaîne de MKCOL par fichier uploadé).
+    private var createdDirectories: Set<String> = []
+
     public init(config: NextcloudConfig = .loadFromKeychain()) {
         self.config = config
         let sessionConfig = URLSessionConfiguration.default
@@ -48,9 +51,10 @@ public actor NextcloudWebDAVService {
         sessionConfig.timeoutIntervalForResource = 300 // 5 minutes resource timeout
         self.session = URLSession(configuration: sessionConfig)
     }
-    
+
     public func updateConfig(_ newConfig: NextcloudConfig) {
         self.config = newConfig
+        createdDirectories.removeAll()
     }
     
     // MARK: - Basic WebDAV Header Helper
@@ -88,19 +92,32 @@ public actor NextcloudWebDAVService {
         }
     }
     
+    // MARK: - Helper for Multi-Component Paths
+    private func buildURL(baseURL: URL, relativePath: String) -> URL {
+        let components = relativePath.split(separator: "/").map { String($0) }
+        var resultURL = baseURL
+        for component in components {
+            resultURL = resultURL.appendingPathComponent(component)
+        }
+        return resultURL
+    }
+    
     // MARK: - MKCOL (Create Remote Folders Recursively)
     public func createDirectory(path: String) async throws {
         guard let baseURL = config.webDavBaseURL else {
             throw WebDAVError.invalidConfig
         }
-        
+
+        // Skip si le dossier a déjà été créé durant cette session (cache invalidé au changement de config)
+        guard !createdDirectories.contains(path) else { return }
+
         let components = path.split(separator: "/").map { String($0) }
         var currentPath = baseURL
-        
+
         for component in components {
             currentPath = currentPath.appendingPathComponent(component, isDirectory: true)
-            var request = makeRequest(url: currentPath, method: "MKCOL")
-            
+            let request = makeRequest(url: currentPath, method: "MKCOL")
+
             do {
                 let (_, response) = try await session.data(for: request)
                 if let httpResponse = response as? HTTPURLResponse {
@@ -111,10 +128,14 @@ public actor NextcloudWebDAVService {
                         }
                     }
                 }
+            } catch let error as WebDAVError {
+                throw error
             } catch {
                 throw WebDAVError.networkError(error)
             }
         }
+
+        createdDirectories.insert(path)
     }
     
     // MARK: - PUT File Upload (Direct or WebDAV v2 Chunked)
@@ -122,13 +143,13 @@ public actor NextcloudWebDAVService {
         guard let baseURL = config.webDavBaseURL else {
             throw WebDAVError.invalidConfig
         }
-        
+
         // Ensure remote parent folder exists
         let folderPath = (remoteRelativePath as NSString).deletingLastPathComponent
         if !folderPath.isEmpty && folderPath != "." {
             try await createDirectory(path: folderPath)
         }
-        
+
         let fileSize: Int64
         do {
             let attr = try FileManager.default.attributesOfItem(atPath: localFileURL.path)
@@ -136,10 +157,22 @@ public actor NextcloudWebDAVService {
         } catch {
             throw WebDAVError.networkError(error)
         }
-        
-        let targetURL = baseURL.appendingPathComponent(remoteRelativePath)
-        
-        // If file > 10 MB, use Nextcloud Chunked Upload v2
+
+        let targetURL = buildURL(baseURL: baseURL, relativePath: remoteRelativePath)
+
+        do {
+            try await performUpload(localFileURL: localFileURL, remoteRelativePath: remoteRelativePath, targetURL: targetURL, fileSize: fileSize, progressHandler: progressHandler)
+        } catch WebDAVError.httpError(let statusCode, _) where statusCode == 409 && !folderPath.isEmpty {
+            // 409 Conflict : le dossier parent a probablement été supprimé côté serveur.
+            // On invalide le cache local et on retente une seule fois.
+            createdDirectories.remove(folderPath)
+            try await createDirectory(path: folderPath)
+            try await performUpload(localFileURL: localFileURL, remoteRelativePath: remoteRelativePath, targetURL: targetURL, fileSize: fileSize, progressHandler: progressHandler)
+        }
+    }
+
+    /// Direct PUT for small files, WebDAV v2 chunked upload for files > 10 MB.
+    private func performUpload(localFileURL: URL, remoteRelativePath: String, targetURL: URL, fileSize: Int64, progressHandler: (@Sendable (Double) -> Void)?) async throws {
         if fileSize > chunkSizeThreshold {
             try await uploadFileChunked(localFileURL: localFileURL, remoteRelativePath: remoteRelativePath, fileSize: fileSize, progressHandler: progressHandler)
         } else {
@@ -160,6 +193,8 @@ public actor NextcloudWebDAVService {
                 }
             }
             progressHandler?(1.0)
+        } catch let error as WebDAVError {
+            throw error
         } catch {
             throw WebDAVError.networkError(error)
         }
@@ -177,13 +212,15 @@ public actor NextcloudWebDAVService {
         while serverRoot.hasSuffix("/") { serverRoot.removeLast() }
         
         let transferID = UUID().uuidString
-        let uploadsPath = "/remote.php/dav/uploads/\(config.username)/\(transferID)"
+        let trimmedUsername = config.username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let encodedUsername = trimmedUsername.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? trimmedUsername
+        let uploadsPath = "/remote.php/dav/uploads/\(encodedUsername)/\(transferID)"
         guard let uploadsURL = URL(string: serverRoot + uploadsPath) else {
             throw WebDAVError.invalidURL(uploadsPath)
         }
-        
+
         // 1. Create upload session directory
-        var mkcolReq = makeRequest(url: uploadsURL, method: "MKCOL")
+        let mkcolReq = makeRequest(url: uploadsURL, method: "MKCOL")
         let (_, mkcolResp) = try await session.data(for: mkcolReq)
         if let http = mkcolResp as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             throw WebDAVError.httpError(statusCode: http.statusCode, message: "Impossible d'initier l'upload par morceaux Nextcloud")
@@ -198,11 +235,16 @@ public actor NextcloudWebDAVService {
         
         while offset < fileSize {
             let currentChunkSize = min(chunkSize, fileSize - offset)
-            try fileHandle.seek(toOffset: UInt64(offset))
-            let chunkData = fileHandle.readData(ofLength: Int(currentChunkSize))
             
-            let chunkStart = String(format: "%016d", offset)
-            let chunkEnd = String(format: "%016d", offset + currentChunkSize - 1)
+            let chunkData: Data? = try autoreleasepool {
+                try fileHandle.seek(toOffset: UInt64(offset))
+                return try fileHandle.read(upToCount: Int(currentChunkSize))
+            }
+            
+            guard let chunkData = chunkData, !chunkData.isEmpty else { break }
+            
+            let chunkStart = String(format: "%016lld", offset)
+            let chunkEnd = String(format: "%016lld", offset + Int64(chunkData.count) - 1)
             let chunkURL = uploadsURL.appendingPathComponent("\(chunkStart)-\(chunkEnd)")
             
             var chunkReq = makeRequest(url: chunkURL, method: "PUT")
@@ -213,20 +255,21 @@ public actor NextcloudWebDAVService {
                 throw WebDAVError.httpError(statusCode: http.statusCode, message: "Erreur lors du transfert du morceau \(chunkIndex)")
             }
             
-            offset += currentChunkSize
+            offset += Int64(chunkData.count)
             chunkIndex += 1
             progressHandler?(Double(offset) / Double(fileSize))
         }
         
         // 3. Assemble chunks via MOVE
-        guard let destinationURL = config.webDavBaseURL?.appendingPathComponent(remoteRelativePath) else {
+        guard let baseURL = config.webDavBaseURL else {
             throw WebDAVError.invalidConfig
         }
-        
-        let destinationPath = destinationURL.path
+        let destinationURL = buildURL(baseURL: baseURL, relativePath: remoteRelativePath)
+
+        // L'en-tête Destination doit être une URI absolue (RFC 4918)
         let moveSourceURL = uploadsURL.appendingPathComponent(".file")
         var moveReq = makeRequest(url: moveSourceURL, method: "MOVE")
-        moveReq.setValue(destinationPath, forHTTPHeaderField: "Destination")
+        moveReq.setValue(destinationURL.absoluteString, forHTTPHeaderField: "Destination")
         
         let (_, moveResp) = try await session.data(for: moveReq)
         if let http = moveResp as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
@@ -240,7 +283,7 @@ public actor NextcloudWebDAVService {
             throw WebDAVError.invalidConfig
         }
         
-        let targetURL = baseURL.appendingPathComponent(remoteRelativePath)
+        let targetURL = buildURL(baseURL: baseURL, relativePath: remoteRelativePath)
         let request = makeRequest(url: targetURL, method: "DELETE")
         
         do {
@@ -253,6 +296,8 @@ public actor NextcloudWebDAVService {
                     throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: "Échec de suppression du fichier distant: \(remoteRelativePath)")
                 }
             }
+        } catch let error as WebDAVError {
+            throw error
         } catch {
             throw WebDAVError.networkError(error)
         }

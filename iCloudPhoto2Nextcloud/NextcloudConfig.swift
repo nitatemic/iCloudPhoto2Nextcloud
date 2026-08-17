@@ -52,7 +52,9 @@ public struct NextcloudConfig: Sendable, Equatable {
             base.removeLast()
         }
         
-        let pathComponent = "/remote.php/dav/files/\(username.trimmingCharacters(in: .whitespacesAndNewlines))"
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let encodedUsername = trimmedUsername.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? trimmedUsername
+        let pathComponent = "/remote.php/dav/files/\(encodedUsername)"
         if !base.hasSuffix(pathComponent) {
             base += pathComponent
         }
