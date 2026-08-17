@@ -4,7 +4,7 @@
 
 macOS menu-bar agent (`LSUIElement`, no Dock icon) that syncs the iCloud Photo Library to a Nextcloud server over WebDAV. SwiftUI + SwiftData + PhotoKit, deployment target macOS 14.0, Swift 5. Plain `.xcodeproj` — no workspace, no Swift Package Manager dependencies.
 
-- `project.pbxproj` uses `objectVersion = 77` → **Xcode 16+ required** to open/build (CI broke on this once; see git history).
+- `project.pbxproj` uses `objectVersion = 77` and `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` → **Xcode 26+ required** to open/build (CI broke on this before; see git history).
 - All user-facing strings, logs, and error messages are in **French**. Keep new UI/log strings in French.
 
 ## Build & Test (verified commands)
@@ -47,4 +47,4 @@ No linter/formatter/typecheck config exists in the repo — `xcodebuild` is the 
 
 ## CI
 
-Single workflow `.github/workflows/build-macos.yml` (push to `main` + manual): builds three **unsigned** Release zips (universal, x86_64, arm64) on `macos-14` with `maxim-lobanov/setup-xcode` (latest-stable). The `CODE_SIGN_IDENTITY=""` / `CODE_SIGNING_REQUIRED=NO` / `CODE_SIGNING_ALLOWED=NO` overrides in each `xcodebuild` invocation are load-bearing — builds fail on the runner without them.
+Single workflow `.github/workflows/build-macos.yml` (push to `main` + manual): builds three **unsigned** Release zips (universal, x86_64, arm64) on `macos-26` (arm64) with `maxim-lobanov/setup-xcode` pinned to `xcode-version: '26'`. The `CODE_SIGN_IDENTITY=""` / `CODE_SIGNING_REQUIRED=NO` / `CODE_SIGNING_ALLOWED=NO` overrides in each `xcodebuild` invocation are load-bearing — builds fail on the runner without them. `macos-latest` still maps to macOS 15, so keep the explicit `macos-26` label.
