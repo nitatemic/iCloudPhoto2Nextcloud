@@ -5,7 +5,7 @@
 macOS menu-bar agent (`LSUIElement`, no Dock icon) that syncs the iCloud Photo Library to a Nextcloud server over WebDAV. SwiftUI + SwiftData + PhotoKit, deployment target macOS 14.0, Swift 5. Plain `.xcodeproj` — no workspace, no Swift Package Manager dependencies.
 
 - `project.pbxproj` uses `objectVersion = 77` and `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` → **Xcode 26+ required** to open/build (CI broke on this before; see git history).
-- All user-facing strings, logs, and error messages are in **French**. Keep new UI/log strings in French.
+- Localization: `Localizable.xcstrings` (source language = **French keys** + `en` translations) and `InfoPlist.xcstrings` (photo permission text). `CFBundleDevelopmentRegion` is `en` so the fallback is: French system → French, **any other language → English**. Runtime language is driven by the system language — the `locale:` parameter of `String(localized:)` does **not** switch languages. New strings: add the French key + an `en` entry to the catalog.
 
 ## Build & Test (verified commands)
 

@@ -21,6 +21,7 @@ Agent macOS de barre de menus qui synchronise votre photothèque iCloud vers un 
 - **Pause / reprise** à tout moment, scan complet forcé à la demande.
 - **Menu enrichi** : état de la sync, statistiques, miniatures des 10 dernières photos synchronisées, accès direct aux réglages Photos si l'autorisation manque.
 - **Fenêtre Réglages & Logs** : test de connexion WebDAV, configuration, logs filtrables (200 dernières entrées).
+- **Bilingue français/anglais** : détection automatique de la langue système — français si le système est en français, anglais sinon.
 
 ## Organisation sur le serveur
 
@@ -125,7 +126,7 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 ## Développement
 
 - **Conventions de commits** : [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `ci:`, `docs:`, `chore:`…).
-- L'interface, les logs et les messages d'erreur sont en **français** — conserver cette convention.
+- **Localisation** : le français est la langue source (`Localizable.xcstrings`, clés françaises + traductions `en`) ; toute nouvelle chaîne doit être ajoutée en français avec sa traduction anglaise dans le catalogue.
 - `AGENTS.md` contient les commandes vérifiées et les pièges du projet pour les agents IA.
 - **CI** : `.github/workflows/build-macos.yml` construit trois zips non signés (universel, x86_64, arm64) sur `macos-26` avec Xcode 26 à chaque push sur `main`.
 
