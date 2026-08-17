@@ -31,6 +31,17 @@ public struct SettingsView: View {
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                 
+                if serverURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("http://") {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.shield.fill")
+                            .foregroundColor(.orange)
+                        Text("Connexion HTTP non sécurisée : Vos identifiants voyagent en clair.")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.vertical, 2)
+                }
+                
                 TextField("Nom d'utilisateur", text: $username)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
