@@ -9,16 +9,17 @@ on:
 jobs:
   build:
     name: Build macOS Binaries (Universal, Intel, Apple Silicon)
-    runs-on: macos-14
+    # Xcode 26 requis (objectVersion 77 + SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor)
+    runs-on: macos-26
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
+      - name: Select Xcode 26
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: '26'
 
       - name: Build Universal Binary (x86_64 + arm64)
         run: |
