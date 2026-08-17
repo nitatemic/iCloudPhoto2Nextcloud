@@ -28,6 +28,8 @@ public final class SyncEngine: PhotoObserverDelegate {
     public var pendingAssetsCount: Int = 0
     public var lastSyncDate: Date?
     public var recentLogs: [SyncLogEntry] = []
+    /// Derniers assets synchronisés (localIdentifier), du plus récent au plus ancien — alimente les miniatures du menu.
+    public var recentSyncedIDs: [String] = []
     public var isPaused: Bool = false
     
     public var config: NextcloudConfig {
@@ -57,6 +59,8 @@ public final class SyncEngine: PhotoObserverDelegate {
     private let maxConsecutiveFailedRuns = 3
     /// Nombre d'uploads simultanés en phase 2 (accélère les lots de petits fichiers).
     private let maxConcurrentUploads = 4
+    /// Nombre de miniatures récentes conservées pour le menu.
+    private let maxRecentSyncedThumbnails = 10
 
     private init() {
         let loadedConfig = NextcloudConfig.loadFromKeychain()
@@ -97,6 +101,7 @@ public final class SyncEngine: PhotoObserverDelegate {
 
         self.photoObserver.delegate = self
         updateStatsFromDatabase()
+        loadRecentSyncedThumbnails()
 
         if let persistenceWarning {
             log(persistenceWarning, level: .error)
@@ -419,6 +424,16 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
     }
 
+    // MARK: - Miniatures récentes (menu)
+    /// Recharge les derniers assets synchronisés depuis la base locale (survit au redémarrage).
+    private func loadRecentSyncedThumbnails() {
+        let syncedRaw = SyncStatus.synced.rawValue
+        var descriptor = FetchDescriptor<SyncedAsset>(predicate: #Predicate { $0.syncStatusRaw == syncedRaw })
+        descriptor.sortBy = [SortDescriptor(\.lastSyncedAt, order: .reverse)]
+        descriptor.fetchLimit = maxRecentSyncedThumbnails
+        recentSyncedIDs = (try? modelContext.fetch(descriptor))?.map(\.localIdentifier) ?? []
+    }
+
     // MARK: - Fin de cycle (scan de suivi + suppressions différées)
     private func finishSyncCycle() {
         isSyncingInProcess = false
@@ -479,7 +494,14 @@ public final class SyncEngine: PhotoObserverDelegate {
             targetAsset.modificationDate = asset.modificationDate
             targetAsset.errorMessage = nil
             try? modelContext.save()
-            
+
+            // Alimente les miniatures récentes du menu
+            recentSyncedIDs.removeAll { $0 == asset.localIdentifier }
+            recentSyncedIDs.insert(asset.localIdentifier, at: 0)
+            if recentSyncedIDs.count > maxRecentSyncedThumbnails {
+                recentSyncedIDs.removeLast()
+            }
+
             log("Synchronisé: \(resourceFilenameSummary(targetAsset))", level: .success)
         } catch {
             targetAsset.syncStatus = .failed
@@ -519,6 +541,8 @@ public final class SyncEngine: PhotoObserverDelegate {
             // Le suivi local est toujours supprimé : l'asset n'existe plus dans la photothèque.
             modelContext.delete(found)
             try? modelContext.save()
+
+            recentSyncedIDs.removeAll { $0 == localID }
         }
 
         updateStatsFromDatabase()

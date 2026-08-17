@@ -28,6 +28,25 @@ public struct StatusMenuView: View {
             // Stats summary grid
             statsGrid
             
+            // Recent synced photos
+            if !engine.recentSyncedIDs.isEmpty {
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Dernières photos synchronisées")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(engine.recentSyncedIDs, id: \.self) { identifier in
+                                PhotoThumbnailView(localIdentifier: identifier, size: CGSize(width: 56, height: 56))
+                            }
+                        }
+                    }
+                }
+            }
+            
             Divider()
             
             // Actions
