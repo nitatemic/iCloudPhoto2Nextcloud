@@ -7,7 +7,7 @@ import Foundation
 import Security
 
 /// Thread-safe manager for securely storing user credentials in macOS Keychain.
-public final class KeychainManager: @unchecked Sendable {
+public nonisolated final class KeychainManager: @unchecked Sendable {
     public static let shared = KeychainManager()
     private let serviceName = "com.icloudphoto2nextcloud.credentials"
     

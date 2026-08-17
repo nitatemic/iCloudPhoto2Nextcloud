@@ -7,7 +7,7 @@ import Foundation
 import Photos
 import Combine
 
-public struct ExtractedMediaResource: Sendable {
+public nonisolated struct ExtractedMediaResource: Sendable {
     public let resourceType: PHAssetResourceType
     public let originalFilename: String
     public let fileURL: URL
@@ -15,7 +15,8 @@ public struct ExtractedMediaResource: Sendable {
     public let isAdjustment: Bool
 }
 
-public struct PhotoChangeEvent: Sendable {
+/// PHAsset est immuable et documenté thread-safe par Apple : le @unchecked Sendable est justifié.
+public nonisolated struct PhotoChangeEvent: @unchecked Sendable {
     public let insertedAssets: [PHAsset]
     public let updatedAssets: [PHAsset]
     public let deletedAssetIDs: [String]
@@ -31,12 +32,13 @@ public protocol PhotoObserverDelegate: AnyObject {
 /// and extracting raw original files, Live Photos (HEIC + MOV), and video files via PHAssetResourceManager.
 public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unchecked Sendable {
     public static let shared = PhotoObserver()
-    
+
     public weak var delegate: PhotoObserverDelegate?
-    
-    private var fetchResult: PHFetchResult<PHAsset>?
-    private let queue = DispatchQueue(label: "com.icloudphoto2nextcloud.photoobserver", qos: .userInitiated)
-    
+
+    /// Gardé exclusivement par la queue série dédiée (cf. nonisolated(unsafe)).
+    nonisolated(unsafe) private var fetchResult: PHFetchResult<PHAsset>?
+    nonisolated private let queue = DispatchQueue(label: "com.icloudphoto2nextcloud.photoobserver", qos: .userInitiated)
+
     private override init() {
         super.init()
     }
@@ -74,7 +76,9 @@ public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unche
     }
 
     // MARK: - PHPhotoLibraryChangeObserver
-    public func photoLibraryDidChange(_ changeInstance: PHChange) {
+    /// Appelé par PhotoKit sur un thread arbitraire : tout le travail est réexpédié sur la queue dédiée
+    /// puis vers le MainActor via le delegate.
+    nonisolated public func photoLibraryDidChange(_ changeInstance: PHChange) {
         queue.async { [weak self] in
             guard let self = self else { return }
             

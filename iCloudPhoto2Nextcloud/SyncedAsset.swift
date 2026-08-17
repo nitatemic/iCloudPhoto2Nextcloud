@@ -7,7 +7,7 @@ import Foundation
 import SwiftData
 import Photos
 
-public enum SyncStatus: String, Codable {
+public nonisolated enum SyncStatus: String, Codable {
     case pending = "pending"
     case syncing = "syncing"
     case synced = "synced"

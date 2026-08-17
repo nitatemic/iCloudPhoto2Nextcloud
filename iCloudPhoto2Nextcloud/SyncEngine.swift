@@ -9,12 +9,19 @@ import Photos
 import Combine
 import SwiftUI
 
-public enum EngineState: Equatable, Sendable {
+public nonisolated enum EngineState: Equatable, Sendable {
     case idle
     case syncing(progress: Double, message: String)
     case paused(progress: Double, message: String)
     case unauthorized
     case error(String)
+}
+
+/// Identifiants Sendable d'un élément à uploader — capturés par les tâches du group
+/// (évite d'envoyer des objets non-Sendable à travers l'isolation `any` d'addTask).
+private struct SyncWorkItem: Sendable {
+    let localIdentifier: String
+    let persistentModelID: PersistentIdentifier
 }
 
 @MainActor
@@ -380,20 +387,13 @@ public final class SyncEngine: PhotoObserverDelegate {
             }
 
             let chunkEnd = min(chunkStart + maxConcurrentUploads, totalPendingToUpload)
-            await withTaskGroup(of: Void.self) { group in
-                for index in chunkStart..<chunkEnd {
-                    let pair = pendingAssetPairs[index]
-                    group.addTask {
-                        await self.syncSingleAsset(pair.asset, targetAsset: pair.syncedRecord, scratchDirectory: tempDir)
-                    }
-                }
-                for await _ in group {
-                    completedCount += 1
-                    let progress = Double(completedCount) / Double(totalPendingToUpload)
-                    self.state = .syncing(progress: progress, message: String(localized: "Envoi \(completedCount) / \(totalPendingToUpload)"))
-                    updateStatsFromDatabase()
-                }
-            }
+            let chunk = Array(pendingAssetPairs[chunkStart..<chunkEnd])
+            await uploadChunk(chunk, scratchDirectory: tempDir)
+
+            completedCount += chunk.count
+            let progress = Double(completedCount) / Double(totalPendingToUpload)
+            self.state = .syncing(progress: progress, message: String(localized: "Envoi \(completedCount) / \(totalPendingToUpload)"))
+            updateStatsFromDatabase()
         }
         
         self.lastSyncDate = Date()
@@ -414,6 +414,29 @@ public final class SyncEngine: PhotoObserverDelegate {
     }
 
     // MARK: - Nouvel essai automatique (backoff plafonné)
+    /// Envoie une tranche d'assets avec un nombre borné d'uploads concurrents.
+    private func uploadChunk(_ pairs: [(asset: PHAsset, syncedRecord: SyncedAsset)], scratchDirectory: URL) async {
+        await withTaskGroup(of: Void.self) { group in
+            for pair in pairs {
+                let workItem = SyncWorkItem(
+                    localIdentifier: pair.asset.localIdentifier,
+                    persistentModelID: pair.syncedRecord.persistentModelID
+                )
+                group.addTask {
+                    await self.processWorkItem(workItem, scratchDirectory: scratchDirectory)
+                }
+            }
+        }
+    }
+
+    /// Traitement MainActor d'un élément d'upload (objets récupérés ici pour
+    /// ne transporter que des valeurs Sendable à travers l'isolation `any` du group).
+    private func processWorkItem(_ workItem: SyncWorkItem, scratchDirectory: URL) async {
+        guard let record = modelContext.model(for: workItem.persistentModelID) as? SyncedAsset else { return }
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [workItem.localIdentifier], options: nil).firstObject else { return }
+        await syncSingleAsset(asset, targetAsset: record, scratchDirectory: scratchDirectory)
+    }
+
     private func scheduleAutomaticRetry() {
         guard consecutiveFailedRuns <= maxConsecutiveFailedRuns else {
             log(String(localized: "Nouvel essai automatique non planifié après \(maxConsecutiveFailedRuns) cycles infructueux. Vérifiez la configuration ou lancez un scan manuel."), level: .warning)
@@ -424,7 +447,7 @@ public final class SyncEngine: PhotoObserverDelegate {
         retryTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delaySeconds))
             guard !Task.isCancelled else { return }
-            await self?.performFullScan()
+            self?.performFullScan()
         }
     }
 

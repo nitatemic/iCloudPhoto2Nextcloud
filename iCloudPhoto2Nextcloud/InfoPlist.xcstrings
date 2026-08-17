@@ -1,10 +1,57 @@
 {
   "sourceLanguage" : "fr",
   "strings" : {
-    "NSPhotoLibraryUsageDescription" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
       "localizations" : {
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Permission requise pour accéder à votre photothèque iCloud afin de synchroniser vos photos et vidéos avec votre serveur Nextcloud." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Permission required to access your iCloud photo library in order to sync your photos and videos with your Nextcloud server." } }
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "iCloudPhoto to Nextcloud"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "iCloudPhoto2Nextcloud"
+          }
+        }
+      }
+    },
+    "NSHumanReadableCopyright" : {
+      "comment" : "Copyright (human-readable)",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : ""
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "Privacy - Photo Library Usage Description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission required to access your iCloud photo library in order to sync your photos and videos with your Nextcloud server."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission requise pour accéder à votre photothèque iCloud afin de synchroniser vos photos et vidéos avec votre serveur Nextcloud."
+          }
+        }
       }
     }
   },

@@ -5,7 +5,7 @@
 
 import Foundation
 
-public enum WebDAVError: LocalizedError, Sendable {
+public nonisolated enum WebDAVError: LocalizedError, Sendable {
     case invalidConfig
     case invalidURL(String)
     case httpError(statusCode: Int, message: String)

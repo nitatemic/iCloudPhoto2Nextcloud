@@ -5,7 +5,7 @@
 
 import Foundation
 
-public struct SyncLogEntry: Identifiable, Sendable {
+public nonisolated struct SyncLogEntry: Identifiable, Sendable {
     public let id: UUID
     public let timestamp: Date
     public let message: String

@@ -5,7 +5,7 @@
 
 import Foundation
 
-public struct NextcloudConfig: Sendable, Equatable {
+public nonisolated struct NextcloudConfig: Sendable, Equatable {
     public var serverURL: String
     public var username: String
     public var appPassword: String

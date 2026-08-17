@@ -2,9 +2,10 @@
 
 ## Project
 
-macOS menu-bar agent (`LSUIElement`, no Dock icon) that syncs the iCloud Photo Library to a Nextcloud server over WebDAV. SwiftUI + SwiftData + PhotoKit, deployment target macOS 14.0, Swift 5. Plain `.xcodeproj` — no workspace, no Swift Package Manager dependencies.
+macOS menu-bar agent (`LSUIElement`, no Dock icon) that syncs the iCloud Photo Library to a Nextcloud server over WebDAV. SwiftUI + SwiftData + PhotoKit, deployment target macOS 14.0, Swift 6 (strict concurrency). Plain `.xcodeproj` — no workspace, no Swift Package Manager dependencies.
 
-- `project.pbxproj` uses `objectVersion = 77` and `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` → **Xcode 26+ required** to open/build (CI broke on this before; see git history).
+- `project.pbxproj` uses `objectVersion = 77`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, `SWIFT_APPROACHABLE_CONCURRENCY = YES` and `SWIFT_VERSION = 6.0` → **Xcode 26+ required** to open/build (CI broke on this before; see git history). Consequence: unannotated public top-level types are MainActor-isolated — public types that must stay general are marked `nonisolated` (e.g. `EngineState`, `NextcloudConfig`).
+- **Known compiler bug (Swift 6.2/6.3, region-based isolation):** a `group.addTask` closure *explicitly annotated* `@MainActor` containing an `await` triggers `error: pattern that the region-based isolation checker does not understand to check. Please file a bug`. And an unannotated closure cannot touch MainActor state synchronously. The working pattern (see `SyncEngine.uploadChunk`): closures capture **only `Sendable` values** (e.g. `String` + `PersistentIdentifier`), are left unannotated (inherit the module's default MainActor… no — they are `@isolated(any)`; they must not touch MainActor members synchronously), and delegate all actor work to a MainActor `async` method (`processWorkItem`) that re-fetches the model objects on the MainActor. With a **non-Sendable** capture the same pattern fails with `sending parameter risks causing data races` — so never capture `PHAsset`/`@Model` instances into task-group closures.
 - Localization: `Localizable.xcstrings` (source language = **French keys** + `en` translations) and `InfoPlist.xcstrings` (photo permission text). `CFBundleDevelopmentRegion` is `en` so the fallback is: French system → French, **any other language → English**. Runtime language is driven by the system language — the `locale:` parameter of `String(localized:)` does **not** switch languages. New strings: add the French key + an `en` entry to the catalog.
 
 ## Build & Test (verified commands)
@@ -33,7 +34,7 @@ No linter/formatter/typecheck config exists in the repo — `xcodebuild` is the 
 
 ## Architecture
 
-- `SyncEngine` (`@MainActor @Observable` singleton, `SyncEngine.shared`) is the orchestrator; started in `iCloudPhoto2NextcloudApp.init()`. Two-phase sync: index/dedupe against SwiftData, then upload with progress.
+- `SyncEngine` (`@MainActor @Observable` singleton, `SyncEngine.shared`) is the orchestrator; started in `iCloudPhoto2NextcloudApp.init()`. Two-phase sync: index/dedupe against SwiftData, then upload with progress. Phase 2 uploads in bounded chunks of `maxConcurrentUploads` (4); each chunk goes through `SyncEngine.uploadChunk` + `processWorkItem` (see the concurrency note above).
 - `PhotoObserver` wraps PhotoKit (`PHPhotoLibraryChangeObserver`, `PHAssetResourceManager` extraction of originals, Live Photo HEIC+MOV pairs, videos).
 - `NextcloudWebDAVService` (`actor`): MKCOL/PUT/DELETE; files >10 MB are chunked in 5 MB parts. `NSAllowsArbitraryLoads` is enabled in Info.plist to support self-hosted instances.
 - Persistence: SwiftData models `SyncedAsset` / `SyncedResource` (both in `SyncedAsset.swift`), stored on disk (not in-memory). Remote layout: `<targetFolder>/yyyy/MM/<originalFilename>`.
