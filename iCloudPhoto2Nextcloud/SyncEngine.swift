@@ -50,6 +50,13 @@ public final class SyncEngine: PhotoObserverDelegate {
     /// Suppressions locales reçues pendant un cycle de sync, traitées en fin de cycle
     /// (évite de supprimer un modèle SwiftData encore référencé par la boucle d'upload en cours).
     private var pendingDeletionIDs: [String] = []
+    /// Tâche de nouvel essai automatique après un cycle avec échecs.
+    private var retryTask: Task<Void, Never>?
+    /// Nombre de cycles consécutifs avec au moins un échec (plafonne les essais automatiques).
+    private var consecutiveFailedRuns = 0
+    private let maxConsecutiveFailedRuns = 3
+    /// Nombre d'uploads simultanés en phase 2 (accélère les lots de petits fichiers).
+    private let maxConcurrentUploads = 4
 
     private init() {
         let loadedConfig = NextcloudConfig.loadFromKeychain()
@@ -120,6 +127,10 @@ public final class SyncEngine: PhotoObserverDelegate {
         if recentLogs.count > 200 {
             recentLogs.removeLast()
         }
+    }
+
+    public func clearLogs() {
+        recentLogs.removeAll()
     }
     
     // MARK: - Pause / Resume Controls
@@ -205,6 +216,10 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     // MARK: - Full Library Scan
     public func performFullScan() {
+        // Un nouveau cycle annule tout essai automatique planifié.
+        retryTask?.cancel()
+        retryTask = nil
+
         guard !isSyncingInProcess else {
             // Un cycle est déjà en cours : la demande sera honorée par un scan de suivi en fin de cycle.
             needsFollowUpScan = true
@@ -216,12 +231,15 @@ public final class SyncEngine: PhotoObserverDelegate {
             let assets = photoObserver.fetchAllAssets()
             log("\(assets.count) éléments trouvés dans la photothèque.", level: .info)
             
-            await enqueueAssetsForSync(assets)
+            // Le balayage des suppressions locales n'est fiable qu'avec un accès complet :
+            // en accès limité, la photothèque ne retourne qu'un sous-ensemble des assets.
+            let hasFullAccess = PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+            await enqueueAssetsForSync(assets, isFullScan: hasFullAccess)
         }
     }
     
     // MARK: - 2-Phase Pre-Scan & Batch Sync Processing
-    private func enqueueAssetsForSync(_ assets: [PHAsset]) async {
+    private func enqueueAssetsForSync(_ assets: [PHAsset], isFullScan: Bool = false) async {
         guard !isSyncingInProcess else {
             // Un cycle est déjà en cours : ces changements seront couverts par le scan de suivi.
             needsFollowUpScan = true
@@ -233,16 +251,18 @@ public final class SyncEngine: PhotoObserverDelegate {
             log("Configuration Nextcloud manquante ou invalide.", level: .warning)
             return
         }
-        
+
+        isSyncingInProcess = true
+
         guard !assets.isEmpty else {
             updateStatsFromDatabase()
             if self.pendingAssetsCount == 0 {
                 self.state = .idle
             }
+            finishSyncCycle()
             return
         }
-        
-        isSyncingInProcess = true
+
         self.state = .syncing(progress: 0.0, message: "Indexation de la photothèque...")
         
         // ----------------------------------------------------
@@ -258,6 +278,8 @@ public final class SyncEngine: PhotoObserverDelegate {
         let existingDescriptor = FetchDescriptor<SyncedAsset>()
         let allExistingAssets = (try? modelContext.fetch(existingDescriptor)) ?? []
         var existingDict = Dictionary(allExistingAssets.map { ($0.localIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
+
+        let fetchedLocalIDs = isFullScan ? Set(assets.map(\.localIdentifier)) : nil
         
         for (index, asset) in assets.enumerated() {
             if Task.isCancelled { break }
@@ -303,6 +325,17 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
         
         try? modelContext.save()
+
+        // Balayage des suppressions : assets présents en base mais absents de la photothèque
+        // (photos supprimées pendant que l'app était fermée, ou événements manqués).
+        if let fetchedLocalIDs {
+            let deletedIDs = existingDict.keys.filter { !fetchedLocalIDs.contains($0) }
+            if !deletedIDs.isEmpty {
+                log("\(deletedIDs.count) élément(s) absents de la photothèque détecté(s) lors du scan.", level: .info)
+                await processDeletions(assetIDs: Array(deletedIDs))
+            }
+        }
+
         updateStatsFromDatabase()
         
         let totalPendingToUpload = pendingAssetPairs.count
@@ -317,29 +350,41 @@ public final class SyncEngine: PhotoObserverDelegate {
         
         // ----------------------------------------------------
         // PHASE 2: Transfert vers Nextcloud avec progression réelle (X / Total)
+        // Uploads concurrents bornés pour accélérer les lots de petits fichiers
         // ----------------------------------------------------
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("SyncScratch_\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true, attributes: nil)
         defer {
             try? FileManager.default.removeItem(at: tempDir)
         }
-        
-        for (index, pair) in pendingAssetPairs.enumerated() {
+
+        var completedCount = 0
+
+        for chunkStart in stride(from: 0, to: totalPendingToUpload, by: maxConcurrentUploads) {
             if Task.isCancelled { break }
-            
-            // Check Pause state loop
+
+            // Check Pause state loop (granularité : lot d'uploads concurrents)
             while isPaused {
-                let currentProgress = Double(index) / Double(totalPendingToUpload)
-                self.state = .paused(progress: currentProgress, message: "En pause (\(index)/\(totalPendingToUpload))")
+                let currentProgress = Double(completedCount) / Double(totalPendingToUpload)
+                self.state = .paused(progress: currentProgress, message: "En pause (\(completedCount)/\(totalPendingToUpload))")
                 try? await Task.sleep(for: .seconds(1))
             }
-            
-            let progress = Double(index) / Double(totalPendingToUpload)
-            self.state = .syncing(progress: progress, message: "Envoi \(index + 1) / \(totalPendingToUpload)")
-            
-            await syncSingleAsset(pair.asset, targetAsset: pair.syncedRecord, scratchDirectory: tempDir)
-            
-            updateStatsFromDatabase()
+
+            let chunkEnd = min(chunkStart + maxConcurrentUploads, totalPendingToUpload)
+            await withTaskGroup(of: Void.self) { group in
+                for index in chunkStart..<chunkEnd {
+                    let pair = pendingAssetPairs[index]
+                    group.addTask {
+                        await self.syncSingleAsset(pair.asset, targetAsset: pair.syncedRecord, scratchDirectory: tempDir)
+                    }
+                }
+                for await _ in group {
+                    completedCount += 1
+                    let progress = Double(completedCount) / Double(totalPendingToUpload)
+                    self.state = .syncing(progress: progress, message: "Envoi \(completedCount) / \(totalPendingToUpload)")
+                    updateStatsFromDatabase()
+                }
+            }
         }
         
         self.lastSyncDate = Date()
@@ -349,11 +394,29 @@ public final class SyncEngine: PhotoObserverDelegate {
         let failedCount = pendingAssetPairs.filter { $0.syncedRecord.syncStatus == .failed }.count
         if failedCount > 0 {
             log("Synchronisation terminée avec \(failedCount) échec(s) sur \(totalPendingToUpload) élément(s).", level: .warning)
+            consecutiveFailedRuns += 1
+            scheduleAutomaticRetry()
         } else {
             log("Synchronisation de \(totalPendingToUpload) élément(s) terminée avec succès.", level: .success)
+            consecutiveFailedRuns = 0
         }
 
         finishSyncCycle()
+    }
+
+    // MARK: - Nouvel essai automatique (backoff plafonné)
+    private func scheduleAutomaticRetry() {
+        guard consecutiveFailedRuns <= maxConsecutiveFailedRuns else {
+            log("Nouvel essai automatique non planifié après \(maxConsecutiveFailedRuns) cycles infructueux. Vérifiez la configuration ou lancez un scan manuel.", level: .warning)
+            return
+        }
+        let delaySeconds = min(60.0 * pow(2.0, Double(consecutiveFailedRuns - 1)), 600.0)
+        log("Nouvel essai automatique planifié dans \(Int(delaySeconds)) s.", level: .warning)
+        retryTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delaySeconds))
+            guard !Task.isCancelled else { return }
+            await self?.performFullScan()
+        }
     }
 
     // MARK: - Fin de cycle (scan de suivi + suppressions différées)
@@ -433,31 +496,31 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     // MARK: - Process Deletions (Mirror: Local Delete -> Remote WebDAV DELETE)
     private func processDeletions(assetIDs: [String]) async {
-        guard config.deleteRemoteOnLocalDelete else {
-            log("Suppression distante ignorée (Option désactivée dans les réglages).", level: .info)
-            return
-        }
-        
         for localID in assetIDs {
             let descriptor = FetchDescriptor<SyncedAsset>(predicate: #Predicate { $0.localIdentifier == localID })
             guard let found = try? modelContext.fetch(descriptor).first else { continue }
-            
-            log("Suppression distante Nextcloud pour asset supprimé: \(localID)", level: .info)
-            
-            for resource in found.resources {
-                let remoteFilePath = "\(found.remotePath)/\(resource.remoteFilename)"
-                do {
-                    try await webDavService.deleteFile(remoteRelativePath: remoteFilePath)
-                    log("Fichier distant supprimé: \(remoteFilePath)", level: .success)
-                } catch {
-                    log("Erreur lors de la suppression de \(remoteFilePath): \(error.localizedDescription)", level: .error)
+
+            if config.deleteRemoteOnLocalDelete {
+                log("Suppression distante Nextcloud pour asset supprimé: \(localID)", level: .info)
+
+                for resource in found.resources {
+                    let remoteFilePath = "\(found.remotePath)/\(resource.remoteFilename)"
+                    do {
+                        try await webDavService.deleteFile(remoteRelativePath: remoteFilePath)
+                        log("Fichier distant supprimé: \(remoteFilePath)", level: .success)
+                    } catch {
+                        log("Erreur lors de la suppression de \(remoteFilePath): \(error.localizedDescription)", level: .error)
+                    }
                 }
+            } else {
+                log("Suppression distante ignorée (Option désactivée dans les réglages).", level: .info)
             }
-            
+
+            // Le suivi local est toujours supprimé : l'asset n'existe plus dans la photothèque.
             modelContext.delete(found)
             try? modelContext.save()
         }
-        
+
         updateStatsFromDatabase()
     }
 }
