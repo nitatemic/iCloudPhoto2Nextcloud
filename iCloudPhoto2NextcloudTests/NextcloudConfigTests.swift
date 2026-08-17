@@ -38,6 +38,17 @@ struct NextcloudConfigTests {
         #expect(config3.isValid == false)
         #expect(config3.webDavBaseURL == nil)
     }
+
+    @Test("Test percent-encoding of special characters in username")
+    func testUsernameEncoding() throws {
+        let config = NextcloudConfig(
+            serverURL: "https://nextcloud.example.com",
+            username: "user name@exemple.fr",
+            appPassword: "pass"
+        )
+        let url = try #require(config.webDavBaseURL)
+        #expect(url.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/user%20name@exemple.fr/")
+    }
     
     @Test("Test KeychainManager save, read, and delete")
     func testKeychainManager() throws {

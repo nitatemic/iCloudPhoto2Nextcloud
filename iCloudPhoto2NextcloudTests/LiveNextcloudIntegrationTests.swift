@@ -65,4 +65,32 @@ final class LiveNextcloudIntegrationTests: XCTestCase {
             XCTFail("Erreur lors des opérations WebDAV: \(error.localizedDescription)")
         }
     }
+    
+    /// Exerce le chemin d'upload chunké (> 10 Mo : MKCOL transfer, PUT de morceaux de 5 Mo, MOVE).
+    func testLiveChunkedUpload() async throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["TEST_NEXTCLOUD_URL"] != nil else {
+            print("Skipping live chunked upload test (no TEST_NEXTCLOUD_URL set).")
+            return
+        }
+        
+        let service = NextcloudWebDAVService(config: config)
+        let testFolderPath = "Photos/iCloudTest/ChunkedTest_\(UUID().uuidString)"
+        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent("test_large_\(UUID().uuidString).bin")
+        
+        // 12 Mo > seuil de 10 Mo pour forcer le chunking v2 (morceaux de 5 Mo)
+        let payload = Data(count: 12 * 1024 * 1024)
+        try payload.write(to: tempFileURL)
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+        
+        let remoteFilePath = "\(testFolderPath)/large_test.bin"
+        
+        do {
+            try await service.uploadFile(localFileURL: tempFileURL, remoteRelativePath: remoteFilePath)
+            try await service.deleteFile(remoteRelativePath: remoteFilePath)
+            try await service.deleteFile(remoteRelativePath: testFolderPath)
+        } catch {
+            XCTFail("Erreur lors de l'upload chunké: \(error.localizedDescription)")
+        }
+    }
 }
