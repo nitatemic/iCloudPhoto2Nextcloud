@@ -126,13 +126,16 @@ public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unche
     /// - RAW & ProRAW: Original RAW resource + companion JPEG/HEIC.
     /// - Live Photos: Both original HEIC/JPG image AND paired MOV video component.
     /// - Videos: Uncompressed original video file.
+    /// Excludes .adjustmentData (format interne de retouche Photos, inexploitable hors Apple).
     public func extractResources(for asset: PHAsset, scratchDirectory: URL) async throws -> [ExtractedMediaResource] {
         let assetResources = PHAssetResource.assetResources(for: asset)
         var extracted: [ExtractedMediaResource] = []
-        
+
         let resourceManager = PHAssetResourceManager.default()
-        
+
         for resource in assetResources {
+            // Les données d'ajustement sont un format interne à Photos : inutile de les envoyer.
+            if resource.type == .adjustmentData { continue }
             // Determine filename and extension
             let filename = resource.originalFilename
             let targetTempURL = scratchDirectory.appendingPathComponent(UUID().uuidString + "_" + filename)
@@ -155,7 +158,7 @@ public final class PhotoObserver: NSObject, PHPhotoLibraryChangeObserver, @unche
                 fileSize = (attr[.size] as? NSNumber)?.int64Value ?? 0
             }
             
-            let isAdjustment = (resource.type == .adjustmentData || resource.type == .fullSizePhoto || resource.type == .fullSizeVideo)
+            let isAdjustment = (resource.type == .fullSizePhoto || resource.type == .fullSizeVideo)
             
             extracted.append(
                 ExtractedMediaResource(
