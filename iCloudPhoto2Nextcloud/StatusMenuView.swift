@@ -42,6 +42,13 @@ public struct StatusMenuView: View {
                     }
                 }
                 
+                // Raccourci vers les réglages de confidentialité quand l'accès Photos est refusé
+                if case .unauthorized = engine.state {
+                    menuButton(title: "Autoriser l'accès aux photos...", icon: "lock.shield") {
+                        openPhotosPrivacySettings()
+                    }
+                }
+                
                 menuButton(title: "Forcer un scan complet", icon: "arrow.clockwise", disabled: isSyncing) {
                     engine.performFullScan()
                 }
@@ -181,6 +188,8 @@ public struct StatusMenuView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title) : \(count)")
     }
     
     private func menuButton(
@@ -215,6 +224,12 @@ public struct StatusMenuView: View {
                     window.orderFrontRegardless()
                 }
             }
+        }
+    }
+
+    private func openPhotosPrivacySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Photos") {
+            NSWorkspace.shared.open(url)
         }
     }
 }

@@ -36,6 +36,11 @@ public struct LogAndStatsView: View {
                 }
                 .pickerStyle(.menu)
                 .frame(width: 120)
+                
+                Button("Effacer les logs") {
+                    engine.clearLogs()
+                }
+                .disabled(engine.recentLogs.isEmpty)
             }
             
             // Log entries list
@@ -85,6 +90,8 @@ public struct LogAndStatsView: View {
         .padding(12)
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title) : \(count)")
     }
     
     @ViewBuilder
