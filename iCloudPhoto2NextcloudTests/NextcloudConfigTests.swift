@@ -18,16 +18,16 @@ struct NextcloudConfigTests {
             appPassword: "secret-token"
         )
         #expect(config1.isValid == true)
-        #expect(config1.webDavBaseURL?.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/user123")
+        #expect(config1.webDavBaseURL?.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/user123/")
         
-        // Case 2: URL without scheme
+        // Case 2: URL without scheme (auto-prepends https://)
         let config2 = NextcloudConfig(
             serverURL: "nextcloud.example.com/",
             username: "admin",
             appPassword: "password"
         )
-        #expect(config2.isValid == false) // Needs scheme or normalization
-        #expect(config2.webDavBaseURL?.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/admin")
+        #expect(config2.isValid == true) // Auto-prefixed with https://
+        #expect(config2.webDavBaseURL?.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/admin/")
         
         // Case 3: Empty fields validation
         let config3 = NextcloudConfig(
