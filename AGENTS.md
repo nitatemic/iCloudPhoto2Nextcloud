@@ -39,6 +39,7 @@ No linter/formatter/typecheck config exists in the repo — `xcodebuild` is the 
 - `NextcloudWebDAVService` (`actor`): MKCOL/PUT/DELETE; files >10 MB are chunked in 5 MB parts. `NSAllowsArbitraryLoads` is enabled in Info.plist to support self-hosted instances.
 - Persistence: SwiftData models `SyncedAsset` / `SyncedResource` (both in `SyncedAsset.swift`), stored on disk (not in-memory). Remote layout: `<targetFolder>/yyyy/MM/<originalFilename>`.
 - Config split (misleading names): `NextcloudConfig.loadFromKeychain()/saveToKeychain()` actually store the app password in the Keychain and everything else in `UserDefaults` (`nc_*` keys).
+- Launch at login uses `SMAppService.mainApp` (`import ServiceManagement`) — the toggle lives in `SettingsView` and applies immediately on change; `register()` fails (and the toggle reverts, with a log) when the app is not in `/Applications`, e.g. when run from Xcode.
 - App is sandboxed: entitlements = app-sandbox + network.client + photos-library. Changing entitlements requires updating `iCloudPhoto2Nextcloud.entitlements`.
 
 ## Conventions

@@ -480,6 +480,22 @@
         }
       }
     },
+    "Échec de la configuration du lancement au démarrage: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure launch at login: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration du lancement au démarrage: %@"
+          }
+        }
+      }
+    },
     "Échec de l'assemblage des morceaux sur Nextcloud" : {
       "localizations" : {
         "en" : {
@@ -906,6 +922,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lancement du test de connexion vers %@..."
+          }
+        }
+      }
+    },
+    "Lancer au démarrage de la session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch at login"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer au démarrage de la session"
           }
         }
       }

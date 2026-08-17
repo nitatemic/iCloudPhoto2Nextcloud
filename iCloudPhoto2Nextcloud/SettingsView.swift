@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import ServiceManagement
 
 public struct SettingsView: View {
     @Bindable var engine = SyncEngine.shared
@@ -16,6 +17,8 @@ public struct SettingsView: View {
     
     @State private var isTestingConnection = false
     @State private var testResult: ConnectionTestResult?
+    
+    @State private var launchAtLogin: Bool = false
     
     private enum ConnectionTestResult {
         case success
@@ -87,6 +90,12 @@ public struct SettingsView: View {
                     .toggleStyle(.checkbox)
             }
             
+            Section("Général") {
+                Toggle("Lancer au démarrage de la session", isOn: launchAtLoginBinding)
+                    .toggleStyle(.checkbox)
+                    .help("Démarre l'agent en arrière-plan à l'ouverture de session (nécessite l'application dans /Applications).")
+            }
+            
             Section {
                 HStack {
                     Spacer()
@@ -103,6 +112,26 @@ public struct SettingsView: View {
         }
     }
     
+    /// Lit l'état réel de l'inscription en login item et applique le changement immédiatement.
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { launchAtLogin },
+            set: { newValue in
+                do {
+                    if newValue {
+                        try SMAppService.mainApp.register()
+                    } else {
+                        try SMAppService.mainApp.unregister()
+                    }
+                    launchAtLogin = newValue
+                } catch {
+                    launchAtLogin = SMAppService.mainApp.status == .enabled
+                    engine.log(String(localized: "Échec de la configuration du lancement au démarrage: \(error.localizedDescription)"), level: .error)
+                }
+            }
+        )
+    }
+    
     private func loadCurrentConfig() {
         let current = engine.config
         self.serverURL = current.serverURL
@@ -110,6 +139,7 @@ public struct SettingsView: View {
         self.appPassword = current.appPassword
         self.targetFolder = current.targetFolder
         self.deleteRemote = current.deleteRemoteOnLocalDelete
+        self.launchAtLogin = SMAppService.mainApp.status == .enabled
     }
     
     private func saveSettings() {
