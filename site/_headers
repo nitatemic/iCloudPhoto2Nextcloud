@@ -1,0 +1,8 @@
+/styles.css
+  Cache-Control: public, max-age=3600
+
+/app.js
+  Cache-Control: public, max-age=3600
+
+/index.html
+  Cache-Control: public, max-age=300
