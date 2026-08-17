@@ -45,25 +45,55 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     private var isSyncingInProcess = false
     private var syncTask: Task<Void, Never>?
-    
+    /// Vrai si des changements sont survenus pendant un cycle de sync : un scan de suivi sera lancé en fin de cycle.
+    private var needsFollowUpScan = false
+    /// Suppressions locales reçues pendant un cycle de sync, traitées en fin de cycle
+    /// (évite de supprimer un modèle SwiftData encore référencé par la boucle d'upload en cours).
+    private var pendingDeletionIDs: [String] = []
+
     private init() {
         let loadedConfig = NextcloudConfig.loadFromKeychain()
         self.config = loadedConfig
         self.webDavService = NextcloudWebDAVService(config: loadedConfig)
         self.photoObserver = PhotoObserver.shared
-        
+
+        let schema = Schema([SyncedAsset.self, SyncedResource.self])
+        let diskConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        var persistenceWarning: String?
+
+        let container: ModelContainer
         do {
-            let schema = Schema([SyncedAsset.self, SyncedResource.self])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            let container = try ModelContainer(for: schema, configurations: [config])
-            self.modelContainer = container
-            self.modelContext = ModelContext(container)
+            container = try ModelContainer(for: schema, configurations: [diskConfig])
         } catch {
-            fatalError("Erreur d'initialisation de SwiftData: \(error.localizedDescription)")
+            // Base potentiellement corrompue : suppression du store (et sidecars SQLite) puis nouvelle tentative
+            let storeURL = diskConfig.url
+            try? FileManager.default.removeItem(at: storeURL)
+            try? FileManager.default.removeItem(atPath: storeURL.path + "-wal")
+            try? FileManager.default.removeItem(atPath: storeURL.path + "-shm")
+            do {
+                container = try ModelContainer(for: schema, configurations: [diskConfig])
+                persistenceWarning = "La base locale était corrompue et a été réinitialisée. Un nouveau scan complet sera nécessaire."
+            } catch {
+                do {
+                    // Dernier recours : base en mémoire volatile pour cette session, plutôt qu'un crash au lancement
+                    let memoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+                    container = try ModelContainer(for: schema, configurations: [memoryConfig])
+                    persistenceWarning = "Base locale indisponible : fonctionnement en mémoire volatile pour cette session."
+                } catch {
+                    fatalError("Erreur d'initialisation de SwiftData: \(error.localizedDescription)")
+                }
+            }
         }
-        
+
+        self.modelContainer = container
+        self.modelContext = ModelContext(container)
+
         self.photoObserver.delegate = self
         updateStatsFromDatabase()
+
+        if let persistenceWarning {
+            log(persistenceWarning, level: .error)
+        }
     }
     
     // MARK: - App Lifecycle Start
@@ -134,7 +164,13 @@ public final class SyncEngine: PhotoObserverDelegate {
         
         Task {
             if !event.deletedAssetIDs.isEmpty {
-                await processDeletions(assetIDs: event.deletedAssetIDs)
+                if isSyncingInProcess {
+                    // Diffère les suppressions : la boucle de sync en cours peut encore référencer ces modèles.
+                    pendingDeletionIDs.append(contentsOf: event.deletedAssetIDs)
+                    needsFollowUpScan = true
+                } else {
+                    await processDeletions(assetIDs: event.deletedAssetIDs)
+                }
             }
             
             let assetsToProcess = event.insertedAssets + event.updatedAssets
@@ -147,11 +183,21 @@ public final class SyncEngine: PhotoObserverDelegate {
     // MARK: - Database Stats Update
     public func updateStatsFromDatabase() {
         do {
-            let descriptor = FetchDescriptor<SyncedAsset>()
-            let all = try modelContext.fetch(descriptor)
-            self.totalAssets = all.count
-            self.syncedAssetsCount = all.filter { $0.syncStatus == .synced }.count
-            self.pendingAssetsCount = all.filter { $0.syncStatus == .pending || $0.syncStatus == .syncing || $0.syncStatus == .failed }.count
+            let syncedRaw = SyncStatus.synced.rawValue
+            let pendingRaw = SyncStatus.pending.rawValue
+            let syncingRaw = SyncStatus.syncing.rawValue
+            let failedRaw = SyncStatus.failed.rawValue
+
+            // fetchCount évite de matérialiser tous les objets en mémoire à chaque appel
+            self.totalAssets = try modelContext.fetchCount(FetchDescriptor<SyncedAsset>())
+            self.syncedAssetsCount = try modelContext.fetchCount(
+                FetchDescriptor<SyncedAsset>(predicate: #Predicate { $0.syncStatusRaw == syncedRaw })
+            )
+            self.pendingAssetsCount = try modelContext.fetchCount(
+                FetchDescriptor<SyncedAsset>(predicate: #Predicate {
+                    $0.syncStatusRaw == pendingRaw || $0.syncStatusRaw == syncingRaw || $0.syncStatusRaw == failedRaw
+                })
+            )
         } catch {
             log("Erreur lors de la lecture de la base locale: \(error.localizedDescription)", level: .error)
         }
@@ -159,7 +205,11 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     // MARK: - Full Library Scan
     public func performFullScan() {
-        guard !isSyncingInProcess else { return }
+        guard !isSyncingInProcess else {
+            // Un cycle est déjà en cours : la demande sera honorée par un scan de suivi en fin de cycle.
+            needsFollowUpScan = true
+            return
+        }
         
         syncTask = Task {
             log("Lancement du scan complet de la photothèque...", level: .info)
@@ -172,6 +222,12 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     // MARK: - 2-Phase Pre-Scan & Batch Sync Processing
     private func enqueueAssetsForSync(_ assets: [PHAsset]) async {
+        guard !isSyncingInProcess else {
+            // Un cycle est déjà en cours : ces changements seront couverts par le scan de suivi.
+            needsFollowUpScan = true
+            return
+        }
+
         guard config.isValid else {
             self.state = .error("Configuration Nextcloud incomplète.")
             log("Configuration Nextcloud manquante ou invalide.", level: .warning)
@@ -198,6 +254,11 @@ public final class SyncEngine: PhotoObserverDelegate {
         let monthFormatter = DateFormatter()
         monthFormatter.dateFormat = "MM"
         
+        // Single bulk fetch to avoid N individual database queries on main thread
+        let existingDescriptor = FetchDescriptor<SyncedAsset>()
+        let allExistingAssets = (try? modelContext.fetch(existingDescriptor)) ?? []
+        var existingDict = Dictionary(allExistingAssets.map { ($0.localIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
+        
         for (index, asset) in assets.enumerated() {
             if Task.isCancelled { break }
             
@@ -208,8 +269,7 @@ public final class SyncEngine: PhotoObserverDelegate {
             }
             
             let localID = asset.localIdentifier
-            let descriptor = FetchDescriptor<SyncedAsset>(predicate: #Predicate { $0.localIdentifier == localID })
-            let existing = try? modelContext.fetch(descriptor).first
+            let existing = existingDict[localID]
             
             let targetAsset: SyncedAsset
             if let found = existing {
@@ -236,6 +296,7 @@ public final class SyncEngine: PhotoObserverDelegate {
                     syncStatus: .pending
                 )
                 modelContext.insert(targetAsset)
+                existingDict[localID] = targetAsset
             }
             
             pendingAssetPairs.append((asset, targetAsset))
@@ -248,9 +309,9 @@ public final class SyncEngine: PhotoObserverDelegate {
         log("\(totalPendingToUpload) élément(s) en attente d'envoi vers Nextcloud.", level: .info)
         
         if totalPendingToUpload == 0 {
-            isSyncingInProcess = false
             self.state = .idle
             log("Tous les éléments sont déjà à jour sur Nextcloud.", level: .success)
+            finishSyncCycle()
             return
         }
         
@@ -281,11 +342,35 @@ public final class SyncEngine: PhotoObserverDelegate {
             updateStatsFromDatabase()
         }
         
-        isSyncingInProcess = false
         self.lastSyncDate = Date()
         updateStatsFromDatabase()
         self.state = .idle
-        log("Synchronisation de \(totalPendingToUpload) élément(s) terminée avec succès.", level: .success)
+
+        let failedCount = pendingAssetPairs.filter { $0.syncedRecord.syncStatus == .failed }.count
+        if failedCount > 0 {
+            log("Synchronisation terminée avec \(failedCount) échec(s) sur \(totalPendingToUpload) élément(s).", level: .warning)
+        } else {
+            log("Synchronisation de \(totalPendingToUpload) élément(s) terminée avec succès.", level: .success)
+        }
+
+        finishSyncCycle()
+    }
+
+    // MARK: - Fin de cycle (scan de suivi + suppressions différées)
+    private func finishSyncCycle() {
+        isSyncingInProcess = false
+
+        if !pendingDeletionIDs.isEmpty {
+            let ids = pendingDeletionIDs
+            pendingDeletionIDs.removeAll()
+            Task { await processDeletions(assetIDs: ids) }
+        }
+
+        if needsFollowUpScan {
+            needsFollowUpScan = false
+            log("Changements détectés pendant la synchronisation : lancement d'un scan de suivi.", level: .info)
+            performFullScan()
+        }
     }
     
     // MARK: - Sync Single Asset (Mac -> Nextcloud)
@@ -293,19 +378,27 @@ public final class SyncEngine: PhotoObserverDelegate {
         targetAsset.syncStatus = .syncing
         try? modelContext.save()
         
+        var extractedResources: [ExtractedMediaResource] = []
+        defer {
+            for res in extractedResources {
+                try? FileManager.default.removeItem(at: res.fileURL)
+            }
+        }
+        
         do {
-            let resources = try await photoObserver.extractResources(for: asset, scratchDirectory: scratchDirectory)
+            extractedResources = try await photoObserver.extractResources(for: asset, scratchDirectory: scratchDirectory)
             
-            for resource in resources {
+            // Clear prior resources to avoid duplicate SyncedResource items on retry
+            targetAsset.resources.removeAll()
+            
+            for resource in extractedResources {
                 let remoteFilePath = "\(targetAsset.remotePath)/\(resource.originalFilename)"
                 
                 log("Upload de \(resource.originalFilename) (\(ByteCountFormatter.string(fromByteCount: resource.fileSize, countStyle: .file)))...", level: .info)
                 
-                try await webDavService.uploadFile(localFileURL: resource.fileURL, remoteRelativePath: remoteFilePath) { subProgress in
+                try await webDavService.uploadFile(localFileURL: resource.fileURL, remoteRelativePath: remoteFilePath) { _ in
                     // Sub progress
                 }
-                
-                try? FileManager.default.removeItem(at: resource.fileURL)
                 
                 let syncedRes = SyncedResource(
                     resourceTypeRaw: resource.resourceType.rawValue,
