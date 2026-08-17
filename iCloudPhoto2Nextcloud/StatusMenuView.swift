@@ -174,9 +174,9 @@ public struct StatusMenuView: View {
             if let last = engine.lastSyncDate {
                 let formatter = RelativeDateTimeFormatter()
                 formatter.unitsStyle = .short
-                return "À jour (\(formatter.localizedString(for: last, relativeTo: Date())))"
+                return String(localized: "À jour (\(formatter.localizedString(for: last, relativeTo: Date())))")
             }
-            return "À jour"
+            return String(localized: "À jour")
         case .syncing(_, let msg):
             return msg
         case .paused(_, let msg):

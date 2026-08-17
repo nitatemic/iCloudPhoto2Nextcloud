@@ -16,17 +16,17 @@ public enum WebDAVError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .invalidConfig:
-            return "Configuration Nextcloud manquante ou invalide."
+            return String(localized: "Configuration Nextcloud manquante ou invalide.")
         case .invalidURL(let path):
-            return "URL WebDAV invalide pour le chemin: \(path)"
+            return String(localized: "URL WebDAV invalide pour le chemin: \(path)")
         case .httpError(let statusCode, let message):
-            return "Erreur HTTP WebDAV (\(statusCode)): \(message)"
+            return String(localized: "Erreur HTTP WebDAV (\(statusCode)): \(message)")
         case .chunkingFailed(let detail):
-            return "Échec du découpage/upload par morceaux: \(detail)"
+            return String(localized: "Échec du découpage/upload par morceaux: \(detail)")
         case .networkError(let error):
-            return "Erreur réseau: \(error.localizedDescription)"
+            return String(localized: "Erreur réseau: \(error.localizedDescription)")
         case .fileNotFound:
-            return "Le fichier distant n'existe pas."
+            return String(localized: "Le fichier distant n'existe pas.")
         }
     }
 }
@@ -124,7 +124,7 @@ public actor NextcloudWebDAVService {
                     // 201 = Created, 405 = Method Not Allowed (Already Exists)
                     if httpResponse.statusCode != 201 && httpResponse.statusCode != 405 {
                         if httpResponse.statusCode >= 400 {
-                            throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: "Échec création dossier \(component)")
+                            throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: String(localized: "Échec création dossier \(component)"))
                         }
                     }
                 }
@@ -189,7 +189,7 @@ public actor NextcloudWebDAVService {
             let (_, response) = try await session.upload(for: request, fromFile: localFileURL)
             if let httpResponse = response as? HTTPURLResponse {
                 guard (200...299).contains(httpResponse.statusCode) else {
-                    throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: "Échec d'upload PUT direct (\(httpResponse.statusCode))")
+                    throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: String(localized: "Échec d'upload PUT direct (\(httpResponse.statusCode))"))
                 }
             }
             progressHandler?(1.0)
@@ -223,7 +223,7 @@ public actor NextcloudWebDAVService {
         let mkcolReq = makeRequest(url: uploadsURL, method: "MKCOL")
         let (_, mkcolResp) = try await session.data(for: mkcolReq)
         if let http = mkcolResp as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw WebDAVError.httpError(statusCode: http.statusCode, message: "Impossible d'initier l'upload par morceaux Nextcloud")
+            throw WebDAVError.httpError(statusCode: http.statusCode, message: String(localized: "Impossible d'initier l'upload par morceaux Nextcloud"))
         }
         
         // 2. Upload chunks
@@ -252,7 +252,7 @@ public actor NextcloudWebDAVService {
             
             let (_, chunkResp) = try await session.upload(for: chunkReq, from: chunkData)
             if let http = chunkResp as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-                throw WebDAVError.httpError(statusCode: http.statusCode, message: "Erreur lors du transfert du morceau \(chunkIndex)")
+                throw WebDAVError.httpError(statusCode: http.statusCode, message: String(localized: "Erreur lors du transfert du morceau \(chunkIndex)"))
             }
             
             offset += Int64(chunkData.count)
@@ -273,7 +273,7 @@ public actor NextcloudWebDAVService {
         
         let (_, moveResp) = try await session.data(for: moveReq)
         if let http = moveResp as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw WebDAVError.httpError(statusCode: http.statusCode, message: "Échec de l'assemblage des morceaux sur Nextcloud")
+            throw WebDAVError.httpError(statusCode: http.statusCode, message: String(localized: "Échec de l'assemblage des morceaux sur Nextcloud"))
         }
     }
     
@@ -293,7 +293,7 @@ public actor NextcloudWebDAVService {
                     return
                 }
                 guard (200...299).contains(httpResponse.statusCode) else {
-                    throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: "Échec de suppression du fichier distant: \(remoteRelativePath)")
+                    throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: String(localized: "Échec de suppression du fichier distant: \(remoteRelativePath)"))
                 }
             }
         } catch let error as WebDAVError {

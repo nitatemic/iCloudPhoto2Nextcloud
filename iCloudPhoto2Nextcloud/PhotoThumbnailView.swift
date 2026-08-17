@@ -40,7 +40,7 @@ public struct PhotoThumbnailView: View {
             RoundedRectangle(cornerRadius: 6)
                 .stroke(Color.secondary.opacity(0.2), lineWidth: 0.5)
         )
-        .accessibilityLabel("Photo synchronisée")
+        .accessibilityLabel(Text("Photo synchronisée"))
         .onAppear { loadThumbnail() }
     }
 

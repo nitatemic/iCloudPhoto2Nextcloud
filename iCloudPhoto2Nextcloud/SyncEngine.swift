@@ -83,13 +83,13 @@ public final class SyncEngine: PhotoObserverDelegate {
             try? FileManager.default.removeItem(atPath: storeURL.path + "-shm")
             do {
                 container = try ModelContainer(for: schema, configurations: [diskConfig])
-                persistenceWarning = "La base locale était corrompue et a été réinitialisée. Un nouveau scan complet sera nécessaire."
+                persistenceWarning = String(localized: "La base locale était corrompue et a été réinitialisée. Un nouveau scan complet sera nécessaire.")
             } catch {
                 do {
                     // Dernier recours : base en mémoire volatile pour cette session, plutôt qu'un crash au lancement
                     let memoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
                     container = try ModelContainer(for: schema, configurations: [memoryConfig])
-                    persistenceWarning = "Base locale indisponible : fonctionnement en mémoire volatile pour cette session."
+                    persistenceWarning = String(localized: "Base locale indisponible : fonctionnement en mémoire volatile pour cette session.")
                 } catch {
                     fatalError("Erreur d'initialisation de SwiftData: \(error.localizedDescription)")
                 }
@@ -110,7 +110,7 @@ public final class SyncEngine: PhotoObserverDelegate {
     
     // MARK: - App Lifecycle Start
     public func startEngine() {
-        log("Démarrage du moteur de synchronisation...", level: .info)
+        log(String(localized: "Démarrage du moteur de synchronisation..."), level: .info)
         photoObserver.startObserving()
         
         Task {
@@ -119,7 +119,7 @@ public final class SyncEngine: PhotoObserverDelegate {
                 _ = await photoObserver.requestAuthorization()
             } else if status == .denied || status == .restricted {
                 self.state = .unauthorized
-                log("Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système.", level: .error)
+                log(String(localized: "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système."), level: .error)
             } else {
                 performFullScan()
             }
@@ -143,17 +143,17 @@ public final class SyncEngine: PhotoObserverDelegate {
         guard !isPaused else { return }
         isPaused = true
         if case .syncing(let progress, _) = state {
-            state = .paused(progress: progress, message: "Synchronisation en pause")
+            state = .paused(progress: progress, message: String(localized: "Synchronisation en pause"))
         } else {
-            state = .paused(progress: 0.0, message: "Synchronisation en pause")
+            state = .paused(progress: 0.0, message: String(localized: "Synchronisation en pause"))
         }
-        log("Mise en pause de la synchronisation.", level: .warning)
+        log(String(localized: "Mise en pause de la synchronisation."), level: .warning)
     }
     
     public func resumeSync() {
         guard isPaused else { return }
         isPaused = false
-        log("Reprise de la synchronisation.", level: .info)
+        log(String(localized: "Reprise de la synchronisation."), level: .info)
     }
     
     public func togglePause() {
@@ -167,16 +167,20 @@ public final class SyncEngine: PhotoObserverDelegate {
     // MARK: - PhotoObserverDelegate
     public func photoObserver(_ observer: PhotoObserver, didChangeAuthorizationStatus status: PHAuthorizationStatus) {
         if status == .authorized || status == .limited {
-            log("Accès aux photos autorisé (\(status == .limited ? "limité" : "complet")).", level: .info)
+            if status == .limited {
+                log(String(localized: "Accès aux photos autorisé (limité)."), level: .info)
+            } else {
+                log(String(localized: "Accès aux photos autorisé (complet)."), level: .info)
+            }
             performFullScan()
         } else if status == .denied || status == .restricted {
             self.state = .unauthorized
-            log("Accès aux photos révoqué.", level: .error)
+            log(String(localized: "Accès aux photos révoqué."), level: .error)
         }
     }
     
     public func photoObserver(_ observer: PhotoObserver, didReceiveChangeEvent event: PhotoChangeEvent) {
-        log("Changement PhotoKit détecté: +\(event.insertedAssets.count), ~\(event.updatedAssets.count), -\(event.deletedAssetIDs.count)", level: .info)
+        log(String(localized: "Changement PhotoKit détecté: +\(event.insertedAssets.count), ~\(event.updatedAssets.count), -\(event.deletedAssetIDs.count)"), level: .info)
         
         Task {
             if !event.deletedAssetIDs.isEmpty {
@@ -215,7 +219,7 @@ public final class SyncEngine: PhotoObserverDelegate {
                 })
             )
         } catch {
-            log("Erreur lors de la lecture de la base locale: \(error.localizedDescription)", level: .error)
+            log(String(localized: "Erreur lors de la lecture de la base locale: \(error.localizedDescription)"), level: .error)
         }
     }
     
@@ -232,9 +236,9 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
         
         syncTask = Task {
-            log("Lancement du scan complet de la photothèque...", level: .info)
+            log(String(localized: "Lancement du scan complet de la photothèque..."), level: .info)
             let assets = photoObserver.fetchAllAssets()
-            log("\(assets.count) éléments trouvés dans la photothèque.", level: .info)
+            log(String(localized: "\(assets.count) éléments trouvés dans la photothèque."), level: .info)
             
             // Le balayage des suppressions locales n'est fiable qu'avec un accès complet :
             // en accès limité, la photothèque ne retourne qu'un sous-ensemble des assets.
@@ -252,8 +256,8 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
 
         guard config.isValid else {
-            self.state = .error("Configuration Nextcloud incomplète.")
-            log("Configuration Nextcloud manquante ou invalide.", level: .warning)
+            self.state = .error(String(localized: "Configuration Nextcloud incomplète."))
+            log(String(localized: "Configuration Nextcloud manquante ou invalide."), level: .warning)
             return
         }
 
@@ -268,7 +272,7 @@ public final class SyncEngine: PhotoObserverDelegate {
             return
         }
 
-        self.state = .syncing(progress: 0.0, message: "Indexation de la photothèque...")
+        self.state = .syncing(progress: 0.0, message: String(localized: "Indexation de la photothèque..."))
         
         // ----------------------------------------------------
         // PHASE 1: Indexation & Décompte total des éléments à envoyer
@@ -292,7 +296,7 @@ public final class SyncEngine: PhotoObserverDelegate {
             // Progress update for indexation phase
             if index % 50 == 0 || index == assets.count - 1 {
                 let indexProgress = Double(index + 1) / Double(assets.count)
-                self.state = .syncing(progress: indexProgress * 0.1, message: "Analyse \(index + 1) / \(assets.count)...")
+                self.state = .syncing(progress: indexProgress * 0.1, message: String(localized: "Analyse \(index + 1) / \(assets.count)..."))
             }
             
             let localID = asset.localIdentifier
@@ -336,7 +340,7 @@ public final class SyncEngine: PhotoObserverDelegate {
         if let fetchedLocalIDs {
             let deletedIDs = existingDict.keys.filter { !fetchedLocalIDs.contains($0) }
             if !deletedIDs.isEmpty {
-                log("\(deletedIDs.count) élément(s) absents de la photothèque détecté(s) lors du scan.", level: .info)
+                log(String(localized: "\(deletedIDs.count) élément(s) absents de la photothèque détecté(s) lors du scan."), level: .info)
                 await processDeletions(assetIDs: Array(deletedIDs))
             }
         }
@@ -344,11 +348,11 @@ public final class SyncEngine: PhotoObserverDelegate {
         updateStatsFromDatabase()
         
         let totalPendingToUpload = pendingAssetPairs.count
-        log("\(totalPendingToUpload) élément(s) en attente d'envoi vers Nextcloud.", level: .info)
+        log(String(localized: "\(totalPendingToUpload) élément(s) en attente d'envoi vers Nextcloud."), level: .info)
         
         if totalPendingToUpload == 0 {
             self.state = .idle
-            log("Tous les éléments sont déjà à jour sur Nextcloud.", level: .success)
+            log(String(localized: "Tous les éléments sont déjà à jour sur Nextcloud."), level: .success)
             finishSyncCycle()
             return
         }
@@ -371,7 +375,7 @@ public final class SyncEngine: PhotoObserverDelegate {
             // Check Pause state loop (granularité : lot d'uploads concurrents)
             while isPaused {
                 let currentProgress = Double(completedCount) / Double(totalPendingToUpload)
-                self.state = .paused(progress: currentProgress, message: "En pause (\(completedCount)/\(totalPendingToUpload))")
+                self.state = .paused(progress: currentProgress, message: String(localized: "En pause (\(completedCount)/\(totalPendingToUpload))"))
                 try? await Task.sleep(for: .seconds(1))
             }
 
@@ -386,7 +390,7 @@ public final class SyncEngine: PhotoObserverDelegate {
                 for await _ in group {
                     completedCount += 1
                     let progress = Double(completedCount) / Double(totalPendingToUpload)
-                    self.state = .syncing(progress: progress, message: "Envoi \(completedCount) / \(totalPendingToUpload)")
+                    self.state = .syncing(progress: progress, message: String(localized: "Envoi \(completedCount) / \(totalPendingToUpload)"))
                     updateStatsFromDatabase()
                 }
             }
@@ -398,11 +402,11 @@ public final class SyncEngine: PhotoObserverDelegate {
 
         let failedCount = pendingAssetPairs.filter { $0.syncedRecord.syncStatus == .failed }.count
         if failedCount > 0 {
-            log("Synchronisation terminée avec \(failedCount) échec(s) sur \(totalPendingToUpload) élément(s).", level: .warning)
+            log(String(localized: "Synchronisation terminée avec \(failedCount) échec(s) sur \(totalPendingToUpload) élément(s)."), level: .warning)
             consecutiveFailedRuns += 1
             scheduleAutomaticRetry()
         } else {
-            log("Synchronisation de \(totalPendingToUpload) élément(s) terminée avec succès.", level: .success)
+            log(String(localized: "Synchronisation de \(totalPendingToUpload) élément(s) terminée avec succès."), level: .success)
             consecutiveFailedRuns = 0
         }
 
@@ -412,11 +416,11 @@ public final class SyncEngine: PhotoObserverDelegate {
     // MARK: - Nouvel essai automatique (backoff plafonné)
     private func scheduleAutomaticRetry() {
         guard consecutiveFailedRuns <= maxConsecutiveFailedRuns else {
-            log("Nouvel essai automatique non planifié après \(maxConsecutiveFailedRuns) cycles infructueux. Vérifiez la configuration ou lancez un scan manuel.", level: .warning)
+            log(String(localized: "Nouvel essai automatique non planifié après \(maxConsecutiveFailedRuns) cycles infructueux. Vérifiez la configuration ou lancez un scan manuel."), level: .warning)
             return
         }
         let delaySeconds = min(60.0 * pow(2.0, Double(consecutiveFailedRuns - 1)), 600.0)
-        log("Nouvel essai automatique planifié dans \(Int(delaySeconds)) s.", level: .warning)
+        log(String(localized: "Nouvel essai automatique planifié dans \(Int(delaySeconds)) s."), level: .warning)
         retryTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delaySeconds))
             guard !Task.isCancelled else { return }
@@ -446,7 +450,7 @@ public final class SyncEngine: PhotoObserverDelegate {
 
         if needsFollowUpScan {
             needsFollowUpScan = false
-            log("Changements détectés pendant la synchronisation : lancement d'un scan de suivi.", level: .info)
+            log(String(localized: "Changements détectés pendant la synchronisation : lancement d'un scan de suivi."), level: .info)
             performFullScan()
         }
     }
@@ -472,7 +476,7 @@ public final class SyncEngine: PhotoObserverDelegate {
             for resource in extractedResources {
                 let remoteFilePath = "\(targetAsset.remotePath)/\(resource.originalFilename)"
                 
-                log("Upload de \(resource.originalFilename) (\(ByteCountFormatter.string(fromByteCount: resource.fileSize, countStyle: .file)))...", level: .info)
+                log(String(localized: "Upload de \(resource.originalFilename) (\(ByteCountFormatter.string(fromByteCount: resource.fileSize, countStyle: .file)))..."), level: .info)
                 
                 try await webDavService.uploadFile(localFileURL: resource.fileURL, remoteRelativePath: remoteFilePath) { _ in
                     // Sub progress
@@ -502,12 +506,12 @@ public final class SyncEngine: PhotoObserverDelegate {
                 recentSyncedIDs.removeLast()
             }
 
-            log("Synchronisé: \(resourceFilenameSummary(targetAsset))", level: .success)
+            log(String(localized: "Synchronisé: \(resourceFilenameSummary(targetAsset))"), level: .success)
         } catch {
             targetAsset.syncStatus = .failed
             targetAsset.errorMessage = error.localizedDescription
             try? modelContext.save()
-            log("Erreur sync \(asset.localIdentifier): \(error.localizedDescription)", level: .error)
+            log(String(localized: "Erreur sync \(asset.localIdentifier): \(error.localizedDescription)"), level: .error)
         }
     }
     
@@ -523,19 +527,19 @@ public final class SyncEngine: PhotoObserverDelegate {
             guard let found = try? modelContext.fetch(descriptor).first else { continue }
 
             if config.deleteRemoteOnLocalDelete {
-                log("Suppression distante Nextcloud pour asset supprimé: \(localID)", level: .info)
+                log(String(localized: "Suppression distante Nextcloud pour asset supprimé: \(localID)"), level: .info)
 
                 for resource in found.resources {
                     let remoteFilePath = "\(found.remotePath)/\(resource.remoteFilename)"
                     do {
                         try await webDavService.deleteFile(remoteRelativePath: remoteFilePath)
-                        log("Fichier distant supprimé: \(remoteFilePath)", level: .success)
+                        log(String(localized: "Fichier distant supprimé: \(remoteFilePath)"), level: .success)
                     } catch {
-                        log("Erreur lors de la suppression de \(remoteFilePath): \(error.localizedDescription)", level: .error)
+                        log(String(localized: "Erreur lors de la suppression de \(remoteFilePath): \(error.localizedDescription)"), level: .error)
                     }
                 }
             } else {
-                log("Suppression distante ignorée (Option désactivée dans les réglages).", level: .info)
+                log(String(localized: "Suppression distante ignorée (Option désactivée dans les réglages)."), level: .info)
             }
 
             // Le suivi local est toujours supprimé : l'asset n'existe plus dans la photothèque.

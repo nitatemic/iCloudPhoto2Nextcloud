@@ -128,12 +128,12 @@ public struct SettingsView: View {
         )
         newConfig.saveToKeychain()
         engine.config = newConfig
-        engine.log("Configuration Nextcloud sauvegardée.", level: .info)
+        engine.log(String(localized: "Configuration Nextcloud sauvegardée."), level: .info)
         
         if newConfig.isValid {
             engine.performFullScan()
         } else {
-            engine.log("La configuration Nextcloud est incomplète.", level: .warning)
+            engine.log(String(localized: "La configuration Nextcloud est incomplète."), level: .warning)
         }
     }
     
@@ -155,7 +155,7 @@ public struct SettingsView: View {
             deleteRemoteOnLocalDelete: deleteRemote
         )
         
-        engine.log("Lancement du test de connexion vers \(normalizedURL)...", level: .info)
+        engine.log(String(localized: "Lancement du test de connexion vers \(normalizedURL)..."), level: .info)
         
         Task {
             let service = NextcloudWebDAVService(config: tempConfig)
@@ -163,14 +163,14 @@ public struct SettingsView: View {
                 let success = try await service.testConnection()
                 if success {
                     self.testResult = .success
-                    engine.log("Succès : Connexion WebDAV à Nextcloud établie avec succès !", level: .success)
+                    engine.log(String(localized: "Succès : Connexion WebDAV à Nextcloud établie avec succès !"), level: .success)
                 } else {
-                    self.testResult = .failure("Le serveur n'a pas répondu favorablement au WebDAV.")
-                    engine.log("Échec : Le serveur Nextcloud n'a pas validé la requête WebDAV PROPFIND.", level: .error)
+                    self.testResult = .failure(String(localized: "Le serveur n'a pas répondu favorablement au WebDAV."))
+                    engine.log(String(localized: "Échec : Le serveur Nextcloud n'a pas validé la requête WebDAV PROPFIND."), level: .error)
                 }
             } catch {
                 self.testResult = .failure(error.localizedDescription)
-                engine.log("Erreur de test de connexion : \(error.localizedDescription)", level: .error)
+                engine.log(String(localized: "Erreur de test de connexion : \(error.localizedDescription)"), level: .error)
             }
             self.isTestingConnection = false
         }

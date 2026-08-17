@@ -1,0 +1,1462 @@
+{
+  "sourceLanguage": "fr",
+  "strings": {
+    "Réglages iCloudPhoto2Nextcloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloudPhoto2Nextcloud Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages iCloudPhoto2Nextcloud"
+          }
+        }
+      }
+    },
+    "Reprendre la synchronisation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume sync"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reprendre la synchronisation"
+          }
+        }
+      }
+    },
+    "Mettre en pause": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre en pause"
+          }
+        }
+      }
+    },
+    "Autoriser l'accès aux photos...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow photo access..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser l'accès aux photos..."
+          }
+        }
+      }
+    },
+    "Forcer un scan complet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force full scan"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forcer un scan complet"
+          }
+        }
+      }
+    },
+    "Réglages & Logs...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings & Logs..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages & Logs..."
+          }
+        }
+      }
+    },
+    "À propos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos"
+          }
+        }
+      }
+    },
+    "Quitter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
+          }
+        }
+      }
+    },
+    "PAUSE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PAUSED"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PAUSE"
+          }
+        }
+      }
+    },
+    "À jour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to date"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À jour"
+          }
+        }
+      }
+    },
+    "À jour (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to date (%@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À jour (%@)"
+          }
+        }
+      }
+    },
+    "Accès photos non autorisé": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access not authorized"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès photos non autorisé"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        }
+      }
+    },
+    "Synchro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchro"
+          }
+        }
+      }
+    },
+    "En attente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente"
+          }
+        }
+      }
+    },
+    "Dernières photos synchronisées": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently synced photos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernières photos synchronisées"
+          }
+        }
+      }
+    },
+    "Connexion Serveur Nextcloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nextcloud Server Connection"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion Serveur Nextcloud"
+          }
+        }
+      }
+    },
+    "URL du serveur (ex: https://cloud.exemple.dev)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server URL (e.g. https://cloud.example.dev)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL du serveur (ex: https://cloud.exemple.dev)"
+          }
+        }
+      }
+    },
+    "Connexion HTTP non sécurisée : Vos identifiants voyagent en clair.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insecure HTTP connection: your credentials are sent in clear text."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion HTTP non sécurisée : Vos identifiants voyagent en clair."
+          }
+        }
+      }
+    },
+    "Nom d'utilisateur": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d'utilisateur"
+          }
+        }
+      }
+    },
+    "Mot de passe d'application (App Password)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App password"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mot de passe d'application (App Password)"
+          }
+        }
+      }
+    },
+    "Test en cours...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testing..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test en cours..."
+          }
+        }
+      }
+    },
+    "Tester la connexion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test connection"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tester la connexion"
+          }
+        }
+      }
+    },
+    "Connexion réussie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection successful"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion réussie"
+          }
+        }
+      }
+    },
+    "Le serveur n'a pas répondu favorablement au WebDAV.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not respond favorably to WebDAV."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le serveur n'a pas répondu favorablement au WebDAV."
+          }
+        }
+      }
+    },
+    "Options de Synchronisation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync Options"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Options de Synchronisation"
+          }
+        }
+      }
+    },
+    "Dossier distant sur Nextcloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote folder on Nextcloud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dossier distant sur Nextcloud"
+          }
+        }
+      }
+    },
+    "Supprimer sur Nextcloud si supprimé localement (Miroir exact)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete on Nextcloud when deleted locally (exact mirror)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer sur Nextcloud si supprimé localement (Miroir exact)"
+          }
+        }
+      }
+    },
+    "Enregistrer les réglages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer les réglages"
+          }
+        }
+      }
+    },
+    "Configuration Nextcloud sauvegardée.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nextcloud configuration saved."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Nextcloud sauvegardée."
+          }
+        }
+      }
+    },
+    "La configuration Nextcloud est incomplète.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Nextcloud configuration is incomplete."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuration Nextcloud est incomplète."
+          }
+        }
+      }
+    },
+    "Lancement du test de connexion vers %@...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting connection test to %@..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancement du test de connexion vers %@..."
+          }
+        }
+      }
+    },
+    "Succès : Connexion WebDAV à Nextcloud établie avec succès !": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Success: WebDAV connection to Nextcloud established!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Succès : Connexion WebDAV à Nextcloud établie avec succès !"
+          }
+        }
+      }
+    },
+    "Échec : Le serveur Nextcloud n'a pas validé la requête WebDAV PROPFIND.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failure: the Nextcloud server did not accept the WebDAV PROPFIND request."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec : Le serveur Nextcloud n'a pas validé la requête WebDAV PROPFIND."
+          }
+        }
+      }
+    },
+    "Erreur de test de connexion : %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection test error: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur de test de connexion : %@"
+          }
+        }
+      }
+    },
+    "Photothèque": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo Library"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photothèque"
+          }
+        }
+      }
+    },
+    "Synchronisés": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisés"
+          }
+        }
+      }
+    },
+    "Rechercher dans les logs...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search logs..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher dans les logs..."
+          }
+        }
+      }
+    },
+    "Filtre": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtre"
+          }
+        }
+      }
+    },
+    "Tous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous"
+          }
+        }
+      }
+    },
+    "Info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info"
+          }
+        }
+      }
+    },
+    "Succès": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Success"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Succès"
+          }
+        }
+      }
+    },
+    "Erreurs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Errors"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreurs"
+          }
+        }
+      }
+    },
+    "Effacer les logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear logs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les logs"
+          }
+        }
+      }
+    },
+    "Photo synchronisée": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced photo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo synchronisée"
+          }
+        }
+      }
+    },
+    "Démarrage du moteur de synchronisation...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting sync engine..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrage du moteur de synchronisation..."
+          }
+        }
+      }
+    },
+    "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access denied. Please grant permission in System Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système."
+          }
+        }
+      }
+    },
+    "Accès aux photos autorisé (limité).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access granted (limited)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès aux photos autorisé (limité)."
+          }
+        }
+      }
+    },
+    "Accès aux photos autorisé (complet).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access granted (full)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès aux photos autorisé (complet)."
+          }
+        }
+      }
+    },
+    "Accès aux photos révoqué.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access revoked."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès aux photos révoqué."
+          }
+        }
+      }
+    },
+    "Changement PhotoKit détecté: +%lld, ~%lld, -%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PhotoKit change detected: +%lld, ~%lld, -%lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changement PhotoKit détecté: +%lld, ~%lld, -%lld"
+          }
+        }
+      }
+    },
+    "Erreur lors de la lecture de la base locale: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error reading local database: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur lors de la lecture de la base locale: %@"
+          }
+        }
+      }
+    },
+    "Lancement du scan complet de la photothèque...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting full photo library scan..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancement du scan complet de la photothèque..."
+          }
+        }
+      }
+    },
+    "%lld éléments trouvés dans la photothèque.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items found in the photo library."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld éléments trouvés dans la photothèque."
+          }
+        }
+      }
+    },
+    "Configuration Nextcloud incomplète.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete Nextcloud configuration."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Nextcloud incomplète."
+          }
+        }
+      }
+    },
+    "Configuration Nextcloud manquante ou invalide.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing or invalid Nextcloud configuration."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Nextcloud manquante ou invalide."
+          }
+        }
+      }
+    },
+    "Mise en pause de la synchronisation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync paused."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise en pause de la synchronisation."
+          }
+        }
+      }
+    },
+    "Reprise de la synchronisation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync resumed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reprise de la synchronisation."
+          }
+        }
+      }
+    },
+    "Synchronisation en pause": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync paused"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation en pause"
+          }
+        }
+      }
+    },
+    "Indexation de la photothèque...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indexing photo library..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indexation de la photothèque..."
+          }
+        }
+      }
+    },
+    "Analyse %lld / %lld...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzing %lld / %lld..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse %lld / %lld..."
+          }
+        }
+      }
+    },
+    "%lld élément(s) en attente d'envoi vers Nextcloud.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld item(s) pending upload to Nextcloud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld élément(s) en attente d'envoi vers Nextcloud."
+          }
+        }
+      }
+    },
+    "Tous les éléments sont déjà à jour sur Nextcloud.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All items are already up to date on Nextcloud."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les éléments sont déjà à jour sur Nextcloud."
+          }
+        }
+      }
+    },
+    "Envoi %lld / %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading %lld / %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi %lld / %lld"
+          }
+        }
+      }
+    },
+    "En pause (%lld/%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused (%lld/%lld)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pause (%lld/%lld)"
+          }
+        }
+      }
+    },
+    "Erreur sync %@: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync error %@: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur sync %@: %@"
+          }
+        }
+      }
+    },
+    "Upload de %@ (%@)...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading %@ (%@)..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload de %@ (%@)..."
+          }
+        }
+      }
+    },
+    "Synchronisé: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisé: %@"
+          }
+        }
+      }
+    },
+    "Synchronisation terminée avec %lld échec(s) sur %lld élément(s).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync completed with %lld failure(s) out of %lld item(s)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation terminée avec %lld échec(s) sur %lld élément(s)."
+          }
+        }
+      }
+    },
+    "Synchronisation de %lld élément(s) terminée avec succès.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync of %lld item(s) completed successfully."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation de %lld élément(s) terminée avec succès."
+          }
+        }
+      }
+    },
+    "Changements détectés pendant la synchronisation : lancement d'un scan de suivi.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes detected during sync: starting a follow-up scan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changements détectés pendant la synchronisation : lancement d'un scan de suivi."
+          }
+        }
+      }
+    },
+    "%lld élément(s) absents de la photothèque détecté(s) lors du scan.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld item(s) missing from the photo library detected during scan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld élément(s) absents de la photothèque détecté(s) lors du scan."
+          }
+        }
+      }
+    },
+    "Suppression distante Nextcloud pour asset supprimé: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote Nextcloud deletion for removed asset: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suppression distante Nextcloud pour asset supprimé: %@"
+          }
+        }
+      }
+    },
+    "Fichier distant supprimé: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote file deleted: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier distant supprimé: %@"
+          }
+        }
+      }
+    },
+    "Erreur lors de la suppression de %@: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error deleting %@: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur lors de la suppression de %@: %@"
+          }
+        }
+      }
+    },
+    "Suppression distante ignorée (Option désactivée dans les réglages).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote deletion skipped (option disabled in settings)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suppression distante ignorée (Option désactivée dans les réglages)."
+          }
+        }
+      }
+    },
+    "Nouvel essai automatique non planifié après %lld cycles infructueux. Vérifiez la configuration ou lancez un scan manuel.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No further automatic retry scheduled after %lld failed cycles. Check the configuration or start a manual scan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel essai automatique non planifié après %lld cycles infructueux. Vérifiez la configuration ou lancez un scan manuel."
+          }
+        }
+      }
+    },
+    "Nouvel essai automatique planifié dans %lld s.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic retry scheduled in %lld s."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel essai automatique planifié dans %lld s."
+          }
+        }
+      }
+    },
+    "La base locale était corrompue et a été réinitialisée. Un nouveau scan complet sera nécessaire.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local database was corrupted and has been reset. A new full scan will be required."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La base locale était corrompue et a été réinitialisée. Un nouveau scan complet sera nécessaire."
+          }
+        }
+      }
+    },
+    "Base locale indisponible : fonctionnement en mémoire volatile pour cette session.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local database unavailable: running with volatile in-memory storage for this session."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base locale indisponible : fonctionnement en mémoire volatile pour cette session."
+          }
+        }
+      }
+    },
+    "URL WebDAV invalide pour le chemin: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid WebDAV URL for path: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL WebDAV invalide pour le chemin: %@"
+          }
+        }
+      }
+    },
+    "Erreur HTTP WebDAV (%lld): %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WebDAV HTTP error (%lld): %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur HTTP WebDAV (%lld): %@"
+          }
+        }
+      }
+    },
+    "Échec du découpage/upload par morceaux: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chunked upload failure: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec du découpage/upload par morceaux: %@"
+          }
+        }
+      }
+    },
+    "Erreur réseau: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network error: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur réseau: %@"
+          }
+        }
+      }
+    },
+    "Le fichier distant n'existe pas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote file does not exist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le fichier distant n'existe pas."
+          }
+        }
+      }
+    },
+    "Échec création dossier %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to create folder %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec création dossier %@"
+          }
+        }
+      }
+    },
+    "Impossible d'initier l'upload par morceaux Nextcloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to start Nextcloud chunked upload"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'initier l'upload par morceaux Nextcloud"
+          }
+        }
+      }
+    },
+    "Erreur lors du transfert du morceau %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error transferring chunk %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur lors du transfert du morceau %lld"
+          }
+        }
+      }
+    },
+    "Échec de l'assemblage des morceaux sur Nextcloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to assemble chunks on Nextcloud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l'assemblage des morceaux sur Nextcloud"
+          }
+        }
+      }
+    },
+    "Échec d'upload PUT direct (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct PUT upload failed (%lld)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec d'upload PUT direct (%lld)"
+          }
+        }
+      }
+    },
+    "Échec de suppression du fichier distant: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete remote file: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de suppression du fichier distant: %@"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
