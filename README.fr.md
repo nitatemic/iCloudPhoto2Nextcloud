@@ -26,6 +26,7 @@ Agent macOS de barre de menus qui synchronise votre photothèque iCloud vers un 
 - **Menu enrichi** : état de la sync, statistiques, miniatures des 10 dernières photos synchronisées, accès direct aux réglages Photos si l'autorisation manque.
 - **Fenêtre Réglages & Logs** : test de connexion WebDAV, configuration, logs filtrables (200 dernières entrées).
 - **Vérification de la sauvegarde** : scan manuel ou périodique (jour/semaine/mois) qui liste le contenu du serveur et détecte les fichiers **manquants** ou **tronqués** (taille incohérente). Les éléments endommagés sont **ré-uploadés automatiquement**.
+- **Mise à jour automatique** : chaque build publie une release GitHub ; l'app vérifie les nouveautés au lancement ou depuis le menu, télécharge le binaire adapté à votre Mac, **vérifie son empreinte SHA-256** puis s'installe et redémarre toute seule.
 - **Bilingue français/anglais** : détection automatique de la langue système — français si le système est en français, anglais sinon.
 
 ## Organisation sur le serveur
@@ -116,7 +117,7 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 
 ## Sécurité & vie privée
 
-- **Sandbox macOS** activée : accès réseau sortant + photothèque uniquement.
+- **Pas de sandbox macOS** : elle a été désactivée pour permettre à l'app de se remplacer elle-même lors des mises à jour automatiques. La photothèque et les autres ressources sensibles restent protégées par les demandes d'autorisation système (TCC) à la première utilisation.
 - Le **mot de passe d'application est stocké dans le Keychain** (jamais dans iCloud, jamais dans les logs) ; la configuration reste locale.
 - `NSAllowsArbitraryLoads` est activé pour supporter les instances auto-hébergées en HTTP : un avertissement explicite s'affiche dans les réglages quand l'URL commence par `http://`.
 - Les **données d'ajustement internes de Photos** (retouches, format propriétaire Apple) ne sont **pas** envoyées : seuls les fichiers exploitables (original + rendu édité) partent sur le serveur.

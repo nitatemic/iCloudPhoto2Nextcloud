@@ -57,6 +57,19 @@ struct LocalizationTests {
         #expect(fr["NSPhotoLibraryUsageDescription"]?.contains("photothèque") == true)
     }
 
+    @Test("Update strings are localized in French and English")
+    func testUpdateTranslations() throws {
+        let en = try compiledTable(lproj: "en", table: "Localizable")
+        let fr = try compiledTable(lproj: "fr", table: "Localizable")
+        
+        #expect(fr["Mise à jour disponible"] == "Mise à jour disponible")
+        #expect(en["Mise à jour disponible"] == "Update available")
+        #expect(en["Mettre à jour et redémarrer"] == "Update and restart")
+        #expect(fr["Empreinte SHA-256 vérifiée, installation..."] == "Empreinte SHA-256 vérifiée, installation...")
+        #expect(en["Empreinte SHA-256 vérifiée, installation..."] == "SHA-256 checksum verified, installing...")
+        #expect(en["Empreinte SHA-256 incorrecte : fichier téléchargé corrompu ou compromis."] == "SHA-256 checksum mismatch: downloaded file corrupted or compromised.")
+    }
+
     @Test("WebDAV error descriptions resolve consistently")
     func testWebDAVErrorLocalization() {
         let error = WebDAVError.httpError(statusCode: 401, message: "Unauthorized")

@@ -26,6 +26,7 @@ macOS menu-bar agent that syncs your iCloud Photo Library to a [Nextcloud](https
 - **Rich menu**: sync status, statistics, thumbnails of the last 10 synced photos, direct link to Photos settings when permission is missing.
 - **Settings & Logs window**: WebDAV connection test, configuration, filterable logs (last 200 entries).
 - **Backup verification**: manual or scheduled scan (daily/weekly/monthly) that lists the server content and detects **missing** or **truncated** files (size mismatch). Damaged items are **re-uploaded automatically**.
+- **Automatic updates**: every build publishes a GitHub Release; the app checks for new builds on launch or from the menu, downloads the binary matching your Mac, **verifies its SHA-256 checksum** and then installs and restarts itself.
 - **Bilingual French/English**: automatic detection of the system language — French if the system is French, English otherwise.
 
 ## Layout on the server
@@ -116,7 +117,7 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 
 ## Security & privacy
 
-- **macOS sandbox** enabled: outbound network + photo library only.
+- No **macOS sandbox**: it was removed so the app can replace itself during automatic updates. Photo Library, Photos and other sensitive resources remain protected by the system permission prompts (TCC) on first use.
 - The **app password is stored in the Keychain** (never in iCloud, never in the logs); configuration stays local.
 - `NSAllowsArbitraryLoads` is enabled to support self-hosted HTTP instances: an explicit warning shows in the settings when the URL starts with `http://`.
 - Photos' **internal adjustment data** (edits, proprietary Apple format) is **not** sent: only usable files (original + edited render) go to the server.

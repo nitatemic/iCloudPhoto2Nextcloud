@@ -22,6 +22,7 @@ public struct SettingsView: View {
     @State private var isVerifying = false
     
     @State private var launchAtLogin: Bool = false
+    @State private var checkUpdatesOnLaunch: Bool = true
     /// True une fois la config chargée : évite d'appliquer les réglages pendant le chargement.
     @State private var didLoadConfig = false
     /// Tâche de sauvegarde différée pour les champs texte (évite de sauvegarder à chaque frappe).
@@ -148,6 +149,12 @@ public struct SettingsView: View {
                 Toggle("Lancer au démarrage de la session", isOn: launchAtLoginBinding)
                     .toggleStyle(.checkbox)
                     .help("Démarre l'agent en arrière-plan à l'ouverture de session (nécessite l'application dans /Applications).")
+                
+                Toggle("Vérifier les mises à jour au lancement", isOn: $checkUpdatesOnLaunch)
+                    .toggleStyle(.checkbox)
+                    .onChange(of: checkUpdatesOnLaunch) {
+                        UserDefaults.standard.set(checkUpdatesOnLaunch, forKey: AppUpdater.checkOnLaunchKey)
+                    }
             }
         }
         .padding(20)
@@ -189,6 +196,7 @@ public struct SettingsView: View {
         self.autoVerify = current.autoVerifyEnabled
         self.verifyIntervalDays = current.verifyIntervalDays
         self.launchAtLogin = SMAppService.mainApp.status == .enabled
+        self.checkUpdatesOnLaunch = UserDefaults.standard.object(forKey: AppUpdater.checkOnLaunchKey) as? Bool ?? true
         self.didLoadConfig = true
     }
     

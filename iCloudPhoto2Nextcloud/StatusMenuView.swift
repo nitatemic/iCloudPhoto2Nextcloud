@@ -9,6 +9,9 @@ public struct StatusMenuView: View {
     @Bindable var engine = SyncEngine.shared
     @Environment(\.openWindow) private var openWindow
     
+    @State private var isCheckingUpdate = false
+    @State private var isInstallingUpdate = false
+    
     public init() {}
     
     public var body: some View {
@@ -76,6 +79,10 @@ public struct StatusMenuView: View {
                 
                 menuButton(title: isVerifying ? "Vérification en cours..." : "Vérifier la sauvegarde", icon: "checkmark.shield", disabled: isVerifying || isSyncing) {
                     engine.performIntegrityVerification()
+                }
+                
+                menuButton(title: updateButtonTitle, icon: "arrow.down.circle", disabled: isCheckingUpdate || isInstallingUpdate) {
+                    checkForUpdates()
                 }
                 
                 if isSyncing {
@@ -287,6 +294,59 @@ public struct StatusMenuView: View {
     private func openPhotosPrivacySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Photos") {
             NSWorkspace.shared.open(url)
+        }
+    }
+    
+    // MARK: - Mise à jour automatique
+    
+    private var updateButtonTitle: String {
+        if isInstallingUpdate { return "Installation de la mise à jour..." }
+        if isCheckingUpdate { return "Recherche de mise à jour..." }
+        return "Rechercher une mise à jour..."
+    }
+    
+    private func checkForUpdates() {
+        isCheckingUpdate = true
+        Task {
+            do {
+                let result = try await AppUpdater.checkForUpdate()
+                isCheckingUpdate = false
+                switch result {
+                case .upToDate:
+                    engine.log(String(localized: "Vous êtes à jour (dernière version installée)."), level: .info)
+                case .available(let release):
+                    await presentUpdate(release)
+                }
+            } catch {
+                isCheckingUpdate = false
+                engine.log(String(localized: "Échec de la recherche de mise à jour : \(error.localizedDescription)"), level: .error)
+            }
+        }
+    }
+    
+    @MainActor
+    private func presentUpdate(_ release: ReleaseInfo) async {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Mise à jour disponible")
+        alert.informativeText = String(localized: "Une nouvelle version (\(release.tagName)) est disponible. La télécharger et l'installer ? L'application redémarrera automatiquement.")
+        alert.addButton(withTitle: String(localized: "Mettre à jour et redémarrer"))
+        alert.addButton(withTitle: String(localized: "Plus tard"))
+        alert.alertStyle = .informational
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            engine.log(String(localized: "Mise à jour \(release.tagName) reportée."), level: .info)
+            return
+        }
+        
+        isInstallingUpdate = true
+        Task {
+            do {
+                try await AppUpdater.downloadAndInstall(release: release) { message in
+                    engine.log(message, level: .info)
+                }
+            } catch {
+                isInstallingUpdate = false
+                engine.log(String(localized: "Échec de l'installation de la mise à jour : \(error.localizedDescription)"), level: .error)
+            }
         }
     }
 }

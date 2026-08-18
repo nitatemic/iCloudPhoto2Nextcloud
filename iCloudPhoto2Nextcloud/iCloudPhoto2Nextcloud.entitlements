@@ -2,10 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>com.apple.security.app-sandbox</key>
-    <true/>
-    <key>com.apple.security.network.client</key>
-    <true/>
+    <!-- La sandbox est désactivée : elle empêcherait l'auto-update de remplacer
+         l'application dans /Applications. L'accès Photos reste soumis à
+         l'autorisation système (TCC) via NSPhotoLibraryUsageDescription. -->
     <key>com.apple.security.personal-information.photos-library</key>
     <true/>
 </dict>

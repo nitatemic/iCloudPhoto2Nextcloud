@@ -35,11 +35,6 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             clean build
-          
-          mkdir -p build/artifacts
-          ditto -c -k --sequesterRsrc \
-            build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
-            build/artifacts/iCloudPhoto2Nextcloud-Universal.zip
 
       - name: Build Intel Binary (x86_64)
         run: |
@@ -54,10 +49,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
-          ditto -c -k --sequesterRsrc \
-            build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
-            build/artifacts/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip
-
       - name: Build Apple Silicon Binary (arm64)
         run: |
           xcodebuild -scheme iCloudPhoto2Nextcloud \
@@ -71,9 +62,50 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
+      # Estampille le tag ci-<sha> (CFBundleVersion) pour que l'app sache
+      # quelle release elle exécute, puis empaquette les trois zips.
+      - name: Stamp build tag and package zips
+        run: |
+          set -e
+          for app in \
+            build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/DerivedDataARM64/Build/Products/Release/iCloudPhoto2Nextcloud.app; do
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ci-${{ github.sha }}" "$app/Contents/Info.plist"
+          done
+
+          mkdir -p build/artifacts
+          ditto -c -k --sequesterRsrc \
+            build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/artifacts/iCloudPhoto2Nextcloud-Universal.zip
+          ditto -c -k --sequesterRsrc \
+            build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
+            build/artifacts/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip
           ditto -c -k --sequesterRsrc \
             build/DerivedDataARM64/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/artifacts/iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip
+
+      # Corps de la release : table markdown avec les empreintes SHA-256
+      # (lues par l'auto-update pour vérifier les zips au téléchargement).
+      - name: Prepare release notes
+        run: |
+          {
+            echo "Build automatique du commit \`${{ github.sha }}\` — binaires **non signés**."
+            echo
+            echo "| Fichier | Architecture | Empreinte SHA-256 |"
+            echo "|---|---|---|"
+            shasum -a 256 build/artifacts/*.zip | while read -r hash file; do
+              name=$(basename "$file")
+              case "$name" in
+                *Universal*) arch="Intel + Apple Silicon" ;;
+                *AppleSilicon*) arch="Apple Silicon" ;;
+                *) arch="Intel" ;;
+              esac
+              echo "| $name | $arch | $hash |"
+            done
+            echo
+            echo "[Détail du workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } > build/release_notes.md
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -84,22 +116,13 @@ jobs:
 
       # Publie une release par build : chaque push sur main crée une nouvelle
       # release (tag ci-<sha>) qui devient "Latest" → liens stables
-      # /releases/latest/download/<zip> dans le README.
+      # /releases/latest/download/<zip> dans le README et l'auto-update.
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ci-${{ github.sha }}
           name: Build ${{ github.sha }}
-          body: |
-            Build automatique du commit `${{ github.sha }}` — binaires **non signés**.
-
-            | Fichier | Architecture |
-            |---|---|
-            | `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon |
-            | `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel |
-            | `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon |
-
-            [Détail du workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          body_path: build/release_notes.md
           files: build/artifacts/*.zip
           fail_on_unmatched_files: false
           make_latest: true

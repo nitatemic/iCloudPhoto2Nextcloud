@@ -140,6 +140,7 @@ public final class SyncEngine: PhotoObserverDelegate {
         photoObserver.startObserving()
         restartVerificationScheduler()
         checkScheduledVerification()
+        checkForUpdateIfEnabled()
         
         Task {
             let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
@@ -156,6 +157,23 @@ public final class SyncEngine: PhotoObserverDelegate {
                 log(String(localized: "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système."), level: .error)
             } else {
                 performFullScan()
+            }
+        }
+    }
+    
+    /// Vérifie la présence d'une mise à jour au lancement (si activé dans les réglages).
+    /// Silencieuse : le résultat est journalisé, jamais affiché en alerte.
+    private func checkForUpdateIfEnabled() {
+        guard UserDefaults.standard.object(forKey: AppUpdater.checkOnLaunchKey) as? Bool ?? true else { return }
+        Task {
+            do {
+                let result = try await AppUpdater.checkForUpdate()
+                if case .available(let release) = result {
+                    log(String(localized: "Mise à jour disponible : \(release.tagName). Menu → « Rechercher une mise à jour »."), level: .info)
+                }
+            } catch {
+                // Échec discret au lancement (hors ligne, API indisponible...)
+                log(String(localized: "Vérification des mises à jour impossible : \(error.localizedDescription)"), level: .warning)
             }
         }
     }
@@ -634,8 +652,7 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
     }
     
-    // MARK: - Vérification périodique programmée
-    /// Redémarre la boucle de planification après un changement de config ou au lancement.
+    // MARK: - Vérification périodique programmée    /// Redémarre la boucle de planification après un changement de config ou au lancement.
     private func restartVerificationScheduler() {
         schedulerTask?.cancel()
         schedulerTask = Task { [weak self] in
