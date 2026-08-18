@@ -46,6 +46,7 @@ No linter/formatter/typecheck config exists in the repo — `xcodebuild` is the 
 
 - Commit style: Conventional Commits (`feat:`, `fix(ci):`, `ci:`, `docs:`).
 - Spec-driven planning docs live in `docs/superpowers/specs/` and `docs/superpowers/plans/` (dated files); `.superpowers/` is tooling state, content gitignored.
+- Security scan: `snyk code test` (SAST). `.snyk` exclut `iCloudPhoto2NextcloudTests` (fixtures factices) — les ignores par ID de finding ne fonctionnent PAS pour Snyk Code ; les 2 faux positifs MEDIUM de `NextcloudConfig.swift` (nom de clé Keychain) sont ignorés côté serveur via Consistent Ignores (`snyk ignore create`).
 
 ## CI
 

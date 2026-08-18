@@ -1,0 +1,14 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# Les ignores par ID de finding ne sont pas supportés pour Snyk Code :
+# les 5 findings des tests sont couverts par l'exclusion ci-dessous, et les
+# 2 faux positifs MEDIUM de NextcloudConfig.swift (nom de clé Keychain) sont
+# ignorés côté serveur via Consistent Ignores (snyk ignore create).
+patch: {}
+exclude:
+  global:
+    - iCloudPhoto2NextcloudTests:
+        reason: >-
+          Tests : fixtures factices (dummy_user, user123, tokens UUID), aucun
+          secret réel
+        created: 2026-08-18T13:13:37.040Z
