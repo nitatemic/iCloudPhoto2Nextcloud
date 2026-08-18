@@ -1,92 +1,96 @@
+<p align="center">
+  <img src="site/logo.png" alt="iCloudPhoto2Nextcloud logo" width="128">
+</p>
+
 # iCloudPhoto2Nextcloud
 
-Agent macOS de barre de menus qui synchronise votre photothèque iCloud vers un serveur [Nextcloud](https://nextcloud.com) via WebDAV. Aucune icône dans le Dock : l'application vit dans la barre de menus et travaille en arrière-plan.
+macOS menu-bar agent that syncs your iCloud Photo Library to a [Nextcloud](https://nextcloud.com) server over WebDAV. No Dock icon: the app lives in the menu bar and works in the background.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-5-orange)
+![Swift](https://img.shields.io/badge/Swift-6-orange)
 ![Xcode](https://img.shields.io/badge/Xcode-26%2B-147EFB)
 
 ---
 
-## Fonctionnalités
+## Features
 
-- **Synchronisation en arrière-plan** : détection automatique des changements de la photothèque (PhotoKit) — ajouts, modifications, suppressions.
-- **Originaux complets** : photos originales, rendus édités, Live Photos (paire HEIC/JPG + MOV), RAW/ProRAW, vidéos non compressées.
-- **Upload en 2 phases** : indexation/déduplication en base locale (SwiftData), puis envoi avec progression réelle (`X / Total`).
-- **Gros fichiers** : au-delà de 10 Mo, upload par morceaux de 5 Mo (WebDAV Chunked Upload v2 de Nextcloud).
-- **4 uploads simultanés** pour accélérer les bibliothèques de milliers de photos.
-- **Mode miroir (option)** : une photo supprimée localement est aussi supprimée sur Nextcloud.
-- **Suppressions détectées hors connexion** : au lancement, un scan complet repère les photos supprimées pendant que l'app était fermée et nettoie le serveur.
-- **Nouvel essai automatique** : en cas d'échecs, replanification avec backoff (60 s → 120 s → 240 s, 3 cycles max).
-- **Pause / reprise** à tout moment, scan complet forcé à la demande.
-- **Menu enrichi** : état de la sync, statistiques, miniatures des 10 dernières photos synchronisées, accès direct aux réglages Photos si l'autorisation manque.
-- **Fenêtre Réglages & Logs** : test de connexion WebDAV, configuration, logs filtrables (200 dernières entrées).
-- **Bilingue français/anglais** : détection automatique de la langue système — français si le système est en français, anglais sinon.
+- **Background sync**: automatic detection of Photo Library changes (PhotoKit) — additions, edits, deletions.
+- **Full originals**: original photos, edited renders, Live Photos (HEIC/JPG + MOV pair), RAW/ProRAW, uncompressed videos.
+- **Two-phase upload**: indexing/deduplication in a local database (SwiftData), then upload with real progress (`X / Total`).
+- **Large files**: above 10 MB, upload is chunked in 5 MB parts (Nextcloud WebDAV Chunked Upload v2).
+- **4 concurrent uploads** to speed up libraries with thousands of photos.
+- **Mirror mode (optional)**: a photo deleted locally is also deleted on Nextcloud.
+- **Deletions detected while offline**: on launch, a full scan finds photos deleted while the app was closed and cleans up the server.
+- **Automatic retry**: on failures, rescheduling with backoff (60 s → 120 s → 240 s, 3 cycles max).
+- **Pause / resume** at any time, forced full scan on demand.
+- **Rich menu**: sync status, statistics, thumbnails of the last 10 synced photos, direct link to Photos settings when permission is missing.
+- **Settings & Logs window**: WebDAV connection test, configuration, filterable logs (last 200 entries).
+- **Bilingual French/English**: automatic detection of the system language — French if the system is French, English otherwise.
 
-## Organisation sur le serveur
+## Layout on the server
 
-Les fichiers sont déposés dans :
+Files are stored in:
 
 ```
-<dossier cible>/yyyy/MM/<nom de fichier original>
+<target folder>/yyyy/MM/<original filename>
 ```
 
-Exemple avec le dossier cible par défaut `Photos/iCloud` :
+Example with the default target folder `Photos/iCloud`:
 
 ```
 Photos/iCloud/2026/08/IMG_1234.HEIC
-Photos/iCloud/2026/08/IMG_1234.MOV   (vidéo de la Live Photo)
+Photos/iCloud/2026/08/IMG_1234.MOV   (Live Photo video)
 ```
 
-## Prérequis
+## Requirements
 
-- **macOS 14.0** ou plus récent.
-- Un serveur **Nextcloud** accessible (y compris en HTTP auto-hébergé — un avertissement s'affiche alors dans les réglages).
-- Un **mot de passe d'application** (app password) Nextcloud, pas votre mot de passe principal : *Réglages → Sécurité → Mot de passe d'application* dans votre instance.
-- Pour compiler : **Xcode 26+** (le projet utilise `objectVersion = 77` et `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`).
+- **macOS 14.0** or later.
+- An accessible **Nextcloud** server (including self-hosted over HTTP — a warning then shows in the settings).
+- A Nextcloud **app password**, not your main password: *Settings → Security → App passwords* in your instance.
+- To build: **Xcode 26+** (the project uses `objectVersion = 77` and `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`).
 
 ## Installation
 
-Téléchargez le zip correspondant à votre Mac depuis les **artefacts de la dernière exécution CI** (onglet *Actions* → dernier run → *macOS-App-Builds*) :
+Download the zip matching your Mac from the **artifacts of the latest CI run** (*Actions* tab → latest run → *macOS-App-Builds*):
 
-| Fichier | Architecture |
+| File | Architecture |
 |---|---|
-| `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon (recommandé) |
-| `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon uniquement |
-| `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel uniquement |
+| `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon (recommended) |
+| `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon only |
+| `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel only |
 
-Les builds CI sont **non signés** : à la première ouverture, faites un clic droit sur l'app → *Ouvrir*, ou lancez `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
+CI builds are **unsigned**: on first launch, right-click the app → *Open*, or run `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
 
 ## Configuration
 
-1. Ouvrez le menu de la barre de menus → **Réglages & Logs…**.
-2. Renseignez l'**URL du serveur** (ex. `https://cloud.exemple.dev` — le schéma `https://` est ajouté automatiquement s'il manque), le **nom d'utilisateur** et le **mot de passe d'application**.
-3. Cliquez **Tester la connexion** pour valider l'accès WebDAV.
-4. Ajustez le **dossier distant** (par défaut `Photos/iCloud`) et l'option **miroir** (suppression distante en cas de suppression locale).
-5. **Enregistrez les réglages** : un scan complet démarre immédiatement.
+1. Open the menu bar menu → **Settings & Logs…**.
+2. Fill in the **server URL** (e.g. `https://cloud.example.dev` — the `https://` scheme is added automatically if missing), the **username** and the **app password**.
+3. Click **Test connection** to validate WebDAV access.
+4. Adjust the **remote folder** (default `Photos/iCloud`) and the **mirror** option (remote deletion when a photo is deleted locally).
+5. **Save the settings**: a full scan starts immediately.
 
-Au premier lancement, macOS demande l'autorisation d'accès à la photothèque. Si elle est refusée, le menu propose un raccourci direct vers *Réglages Système → Confidentialité → Photos*.
+On first launch, macOS asks for Photo Library access. If denied, the menu offers a direct shortcut to *System Settings → Privacy & Security → Photos*.
 
-## Compilation depuis les sources
+## Building from source
 
 ```bash
 # Build
 xcodebuild -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' build
 
-# Tests unitaires (rapides, sans UI)
+# Unit tests only (fast, no UI)
 xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
   -only-testing:iCloudPhoto2NextcloudTests
 
-# Un seul test
+# Single test
 xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
   -only-testing:iCloudPhoto2NextcloudTests/NextcloudConfigTests/testUsernameEncoding
 ```
 
-Tests d'intégration contre un **vrai serveur Nextcloud** (ils sont silencieusement ignorés sans ces variables) :
+Integration tests against a **real Nextcloud server** (silently skipped without these variables):
 
 ```bash
-TEST_NEXTCLOUD_URL=https://cloud.exemple.dev \
-TEST_NEXTCLOUD_USER=utilisateur \
+TEST_NEXTCLOUD_URL=https://cloud.example.dev \
+TEST_NEXTCLOUD_USER=user \
 TEST_NEXTCLOUD_PASS=xxxx-xxxx-xxxx \
 xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
   -only-testing:iCloudPhoto2NextcloudTests
@@ -94,42 +98,42 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 
 ## Architecture
 
-| Composant | Rôle |
+| Component | Role |
 |---|---|
-| `SyncEngine` | Orchestrateur (`@MainActor @Observable`, singleton). Cycle en 2 phases, pause, statistiques, suppressions différées, essais automatiques. |
-| `PhotoObserver` | Enveloppe PhotoKit : observation des changements (`PHPhotoLibraryChangeObserver`), extraction des originaux (Live Photos, RAW, vidéos) via `PHAssetResourceManager`. |
-| `NextcloudWebDAVService` | Actor : MKCOL/PUT/DELETE, upload par morceaux > 10 Mo, cache des dossiers créés, retry sur conflit 409. |
-| `SyncedAsset` / `SyncedResource` | Modèles SwiftData persistés sur disque (suivi local, déduplication, statuts `pending/syncing/synced/failed`). |
-| `NextcloudConfig` | Configuration : mot de passe dans le **Keychain**, reste dans `UserDefaults` (clés `nc_*`). |
-| Vues | `StatusMenuView` (menu), `ConfigurationWindow` (Réglages + Logs), `PhotoThumbnailView` (miniatures). |
+| `SyncEngine` | Orchestrator (`@MainActor @Observable`, singleton). Two-phase cycle, pause, statistics, deferred deletions, automatic retries. |
+| `PhotoObserver` | PhotoKit wrapper: change observation (`PHPhotoLibraryChangeObserver`), extraction of originals (Live Photos, RAW, videos) via `PHAssetResourceManager`. |
+| `NextcloudWebDAVService` | Actor: MKCOL/PUT/DELETE, chunked upload above 10 MB, cache of created folders, retry on 409 conflict. |
+| `SyncedAsset` / `SyncedResource` | SwiftData models persisted to disk (local tracking, deduplication, `pending/syncing/synced/failed` statuses). |
+| `NextcloudConfig` | Configuration: password in the **Keychain**, everything else in `UserDefaults` (`nc_*` keys). |
+| Views | `StatusMenuView` (menu), `ConfigurationWindow` (Settings + Logs), `PhotoThumbnailView` (thumbnails). |
 
-### Concurrence
+### Concurrency
 
-- Le `SyncEngine` vit sur le MainActor ; les uploads réseau sont **asynchrones et parallèles** (4 à la fois, `TaskGroup`).
-- Un seul cycle de synchronisation à la fois : les événements PhotoKit reçus pendant un cycle déclenchent un **scan de suivi** en fin de cycle.
-- Les suppressions locales détectées pendant un cycle sont **différées** pour éviter de supprimer des modèles encore référencés par la boucle d'upload.
+- `SyncEngine` lives on the MainActor; network uploads are **asynchronous and parallel** (4 at a time, `TaskGroup`).
+- Only one sync cycle at a time: PhotoKit events received during a cycle trigger a **follow-up scan** at the end of the cycle.
+- Local deletions detected during a cycle are **deferred** to avoid deleting models still referenced by the upload loop.
 
-## Sécurité & vie privée
+## Security & privacy
 
-- **Sandbox macOS** activée : accès réseau sortant + photothèque uniquement.
-- Le **mot de passe d'application est stocké dans le Keychain** (jamais dans iCloud, jamais dans les logs) ; la configuration reste locale.
-- `NSAllowsArbitraryLoads` est activé pour supporter les instances auto-hébergées en HTTP : un avertissement explicite s'affiche dans les réglages quand l'URL commence par `http://`.
-- Les **données d'ajustement internes de Photos** (retouches, format propriétaire Apple) ne sont **pas** envoyées : seuls les fichiers exploitables (original + rendu édité) partent sur le serveur.
+- **macOS sandbox** enabled: outbound network + photo library only.
+- The **app password is stored in the Keychain** (never in iCloud, never in the logs); configuration stays local.
+- `NSAllowsArbitraryLoads` is enabled to support self-hosted HTTP instances: an explicit warning shows in the settings when the URL starts with `http://`.
+- Photos' **internal adjustment data** (edits, proprietary Apple format) is **not** sent: only usable files (original + edited render) go to the server.
 
-## Limites connues
+## Known limitations
 
-- En **accès limité à la photothèque** (mode « Photos sélectionnées »), le balayage des suppressions est désactivé (il serait trompeur sur un sous-ensemble d'assets).
-- Les aperçus des **HEIC dans l'interface web de Nextcloud** dépendent de la configuration serveur (imagick/ffmpeg, tâche `preview:generate`).
-- Pas de lancement automatique à la connexion pour l'instant (prévu : `SMAppService`).
-- Les miniatures du menu concernent les 10 dernières photos **synchronisées** (pas toute la bibliothèque).
+- With **limited Photo Library access** («Selected Photos» mode), the deletion scan is disabled (it would be misleading on a subset of assets).
+- **HEIC previews in the Nextcloud web interface** depend on the server configuration (imagick/ffmpeg, `preview:generate` task).
+- **Launch at login** (optional): the agent starts automatically at session login (SMAppService), toggled in the settings.
+- The menu thumbnails cover the last 10 **synced** photos (not the whole library).
 
-## Développement
+## Development
 
-- **Conventions de commits** : [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `ci:`, `docs:`, `chore:`…).
-- **Localisation** : le français est la langue source (`Localizable.xcstrings`, clés françaises + traductions `en`) ; toute nouvelle chaîne doit être ajoutée en français avec sa traduction anglaise dans le catalogue.
-- `AGENTS.md` contient les commandes vérifiées et les pièges du projet pour les agents IA.
-- **CI** : `.github/workflows/build-macos.yml` construit trois zips non signés (universel, x86_64, arm64) sur `macos-26` avec Xcode 26 à chaque push sur `main`.
+- **Commit conventions**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `ci:`, `docs:`, `chore:`…).
+- **Localization**: French is the source language (`Localizable.xcstrings`, French keys + `en` translations); every new string must be added in French with its English translation in the catalog.
+- `AGENTS.md` contains the verified commands and project pitfalls for AI agents.
+- **CI**: `.github/workflows/build-macos.yml` builds three unsigned zips (universal, x86_64, arm64) on `macos-26` with Xcode 26 on every push to `main`.
 
 ---
 
-« iCloudPhoto2Nextcloud » — vos photos iCloud, sauvegardées où vous voulez.
+« iCloudPhoto2Nextcloud » — your iCloud photos, backed up wherever you want.
