@@ -77,6 +77,14 @@ public struct StatusMenuView: View {
                 }
                 
                 menuButton(title: "À propos", icon: "info.circle") {
+                    // App LSUIElement (pas d'icône Dock) : AppKit ne charge pas
+                    // toujours l'icône du bundle pour le panneau À propos.
+                    if NSApp.applicationIconImage == nil {
+                        let icon = NSImage(named: "AppIcon") ?? Bundle.main.image(forResource: "AppIcon")
+                        if let icon {
+                            NSApp.applicationIconImage = icon
+                        }
+                    }
                     NSApp.activate(ignoringOtherApps: true)
                     NSApp.orderFrontStandardAboutPanel(nil)
                 }
