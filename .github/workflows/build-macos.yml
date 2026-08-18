@@ -11,6 +11,8 @@ jobs:
     name: Build macOS Binaries (Universal, Intel, Apple Silicon)
     # Xcode 26 requis (objectVersion 77 + SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor)
     runs-on: macos-26
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -79,3 +81,25 @@ jobs:
           name: macOS-App-Builds
           path: build/artifacts/*.zip
           if-no-files-found: error
+
+      # Publie une release par build : chaque push sur main crée une nouvelle
+      # release (tag ci-<sha>) qui devient "Latest" → liens stables
+      # /releases/latest/download/<zip> dans le README.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ci-${{ github.sha }}
+          name: Build ${{ github.sha }}
+          body: |
+            Build automatique du commit `${{ github.sha }}` — binaires **non signés**.
+
+            | Fichier | Architecture |
+            |---|---|
+            | `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon |
+            | `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel |
+            | `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon |
+
+            [Détail du workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          files: build/artifacts/*.zip
+          fail_on_unmatched_files: false
+          make_latest: true

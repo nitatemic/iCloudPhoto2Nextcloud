@@ -52,15 +52,15 @@ Photos/iCloud/2026/08/IMG_1234.MOV   (vidéo de la Live Photo)
 
 ## Installation
 
-Téléchargez le zip correspondant à votre Mac depuis les **artefacts de la dernière exécution CI** (onglet *Actions* → dernier run → *macOS-App-Builds*) :
+Chaque build sur `main` publie une nouvelle [Release GitHub](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest) avec les trois binaires (**non signés**) :
 
-| Fichier | Architecture |
+| Architecture | Téléchargement |
 |---|---|
-| `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon (recommandé) |
-| `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon uniquement |
-| `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel uniquement |
+| Intel + Apple Silicon (recommandé) | [iCloudPhoto2Nextcloud-Universal.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-Universal.zip) |
+| Apple Silicon uniquement | [iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip) |
+| Intel uniquement | [iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip) |
 
-Les builds CI sont **non signés** : à la première ouverture, faites un clic droit sur l'app → *Ouvrir*, ou lancez `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
+Les builds sont **non signés** : à la première ouverture, faites un clic droit sur l'app → *Ouvrir*, ou lancez `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
 
 ## Configuration
 
@@ -133,7 +133,7 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 - **Conventions de commits** : [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `ci:`, `docs:`, `chore:`…).
 - **Localisation** : le français est la langue source (`Localizable.xcstrings`, clés françaises + traductions `en`) ; toute nouvelle chaîne doit être ajoutée en français avec sa traduction anglaise dans le catalogue.
 - `AGENTS.md` contient les commandes vérifiées et les pièges du projet pour les agents IA.
-- **CI** : `.github/workflows/build-macos.yml` construit trois zips non signés (universel, x86_64, arm64) sur `macos-26` avec Xcode 26 à chaque push sur `main`.
+- **CI** : `.github/workflows/build-macos.yml` construit trois zips non signés (universel, x86_64, arm64) sur `macos-26` avec Xcode 26 à chaque push sur `main`, puis les publie dans une nouvelle Release GitHub (tag `ci-<sha>`, marquée Latest).
 
 ---
 

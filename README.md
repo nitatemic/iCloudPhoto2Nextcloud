@@ -52,15 +52,15 @@ Photos/iCloud/2026/08/IMG_1234.MOV   (Live Photo video)
 
 ## Installation
 
-Download the zip matching your Mac from the **artifacts of the latest CI run** (*Actions* tab → latest run → *macOS-App-Builds*):
+Every build on `main` publishes a new [GitHub Release](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest) with the three binaries (**unsigned**):
 
-| File | Architecture |
+| Architecture | Download |
 |---|---|
-| `iCloudPhoto2Nextcloud-Universal.zip` | Intel + Apple Silicon (recommended) |
-| `iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip` | Apple Silicon only |
-| `iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip` | Intel only |
+| Intel + Apple Silicon (recommended) | [iCloudPhoto2Nextcloud-Universal.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-Universal.zip) |
+| Apple Silicon only | [iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip) |
+| Intel only | [iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip](https://github.com/nitatemic/iCloudPhoto2Nextcloud/releases/latest/download/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip) |
 
-CI builds are **unsigned**: on first launch, right-click the app → *Open*, or run `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
+The builds are **unsigned**: on first launch, right-click the app → *Open*, or run `xattr -dr com.apple.quarantine "iCloudPhoto2Nextcloud.app"`.
 
 ## Configuration
 
@@ -133,7 +133,7 @@ xcodebuild test -scheme iCloudPhoto2Nextcloud -destination 'platform=macOS' \
 - **Commit conventions**: [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `ci:`, `docs:`, `chore:`…).
 - **Localization**: French is the source language (`Localizable.xcstrings`, French keys + `en` translations); every new string must be added in French with its English translation in the catalog.
 - `AGENTS.md` contains the verified commands and project pitfalls for AI agents.
-- **CI**: `.github/workflows/build-macos.yml` builds three unsigned zips (universal, x86_64, arm64) on `macos-26` with Xcode 26 on every push to `main`.
+- **CI**: `.github/workflows/build-macos.yml` builds three unsigned zips (universal, x86_64, arm64) on `macos-26` with Xcode 26 on every push to `main`, and publishes them as a new GitHub Release (tag `ci-<sha>`, marked Latest).
 
 ---
 
