@@ -28,6 +28,19 @@ struct LocalizationTests {
         #expect(table["Tous les éléments sont déjà à jour sur Nextcloud."] == "All items are already up to date on Nextcloud.")
     }
 
+    @Test("Backup verification strings are localized in French and English")
+    func testVerificationTranslations() throws {
+        let en = try compiledTable(lproj: "en", table: "Localizable")
+        let fr = try compiledTable(lproj: "fr", table: "Localizable")
+        
+        #expect(fr["Vérification de la sauvegarde..."] == "Vérification de la sauvegarde...")
+        #expect(en["Vérification de la sauvegarde..."] == "Verifying backup...")
+        #expect(en["Vérification %lld / %lld dossiers"] == "Verifying folder %lld / %lld")
+        #expect(fr["Fichier manquant sur le serveur (vérification) : %@"] == "Fichier manquant sur le serveur (vérification) : %@")
+        #expect(en["Fichier manquant sur le serveur (vérification) : %@"] == "Missing file on server (verification): %@")
+        #expect(en["Vérification terminée : %lld fichier(s) contrôlé(s), aucun problème détecté."] == "Verification complete: %lld file(s) checked, no issues found.")
+    }
+
     @Test("French Localizable.strings ships the source strings")
     func testFrenchTranslations() throws {
         let table = try compiledTable(lproj: "fr", table: "Localizable")

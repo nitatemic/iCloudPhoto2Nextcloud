@@ -66,6 +66,42 @@ final class LiveNextcloudIntegrationTests: XCTestCase {
         }
     }
     
+    /// Exerce le PROPFIND Depth:1 de listage de dossier (avec création/upload/cleanup).
+    func testLiveDirectoryListing() async throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["TEST_NEXTCLOUD_URL"] != nil else {
+            print("Skipping live directory listing test (no TEST_NEXTCLOUD_URL set).")
+            return
+        }
+        
+        let service = NextcloudWebDAVService(config: config)
+        let testFolderPath = "Photos/iCloudTest/ListingTest_\(UUID().uuidString)"
+        let tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent("listing_\(UUID().uuidString).txt")
+        let dummyContent = "Contenu de test listage \(Date())"
+        try dummyContent.write(to: tempFileURL, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+        
+        let remoteFilePath = "\(testFolderPath)/fichier liste.txt"
+        
+        do {
+            try await service.createDirectory(path: testFolderPath)
+            try await service.uploadFile(localFileURL: tempFileURL, remoteRelativePath: remoteFilePath)
+            
+            let listing = try await service.listDirectory(remoteRelativePath: testFolderPath)
+            XCTAssertTrue(listing.contains { $0.filename == "fichier liste.txt" && $0.fileSize == Int64(dummyContent.utf8.count) },
+                          "Le fichier uploadé devrait apparaître dans le listage avec la bonne taille.")
+            
+            // Dossier inexistant : liste vide, pas d'erreur
+            let missing = try await service.listDirectory(remoteRelativePath: "\(testFolderPath)/inexistant")
+            XCTAssertTrue(missing.isEmpty)
+            
+            try await service.deleteFile(remoteRelativePath: remoteFilePath)
+            try await service.deleteFile(remoteRelativePath: testFolderPath)
+        } catch {
+            XCTFail("Erreur lors du listage WebDAV: \(error.localizedDescription)")
+        }
+    }
+    
     /// Exerce le chemin d'upload chunké (> 10 Mo : MKCOL transfer, PUT de morceaux de 5 Mo, MOVE).
     func testLiveChunkedUpload() async throws {
         let env = ProcessInfo.processInfo.environment

@@ -30,7 +30,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		38504C0130225C5A006D2EA2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		38504C0130225C5A006D2EA2 /* Exceptions for "iCloudPhoto2Nextcloud" folder in "iCloudPhoto2Nextcloud" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -43,7 +43,7 @@
 		38504BD330225C56006D2EA2 /* iCloudPhoto2Nextcloud */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				38504C0130225C5A006D2EA2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				38504C0130225C5A006D2EA2 /* Exceptions for "iCloudPhoto2Nextcloud" folder in "iCloudPhoto2Nextcloud" target */,
 			);
 			path = iCloudPhoto2Nextcloud;
 			sourceTree = "<group>";

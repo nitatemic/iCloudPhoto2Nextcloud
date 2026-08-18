@@ -40,6 +40,8 @@ struct iCloudPhoto2NextcloudApp: App {
             return "arrow.triangle.2.circlepath"
         case .paused:
             return "pause.circle"
+        case .verifying:
+            return "checkmark.shield"
         case .unauthorized, .error:
             return "exclamationmark.triangle"
         }

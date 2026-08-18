@@ -14,11 +14,18 @@ public struct SettingsView: View {
     @State private var appPassword: String = ""
     @State private var targetFolder: String = "Photos/iCloud"
     @State private var deleteRemote: Bool = true
+    @State private var autoVerify: Bool = false
+    @State private var verifyIntervalDays: Int = 7
     
     @State private var isTestingConnection = false
     @State private var testResult: ConnectionTestResult?
+    @State private var isVerifying = false
     
     @State private var launchAtLogin: Bool = false
+    /// True une fois la config chargée : évite d'appliquer les réglages pendant le chargement.
+    @State private var didLoadConfig = false
+    /// Tâche de sauvegarde différée pour les champs texte (évite de sauvegarder à chaque frappe).
+    @State private var saveTask: Task<Void, Never>?
     
     private enum ConnectionTestResult {
         case success
@@ -33,6 +40,7 @@ public struct SettingsView: View {
                 TextField("URL du serveur (ex: https://cloud.exemple.dev)", text: $serverURL)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
+                    .onChange(of: serverURL) { scheduleSave() }
                 
                 if serverURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasPrefix("http://") {
                     HStack(spacing: 6) {
@@ -48,9 +56,11 @@ public struct SettingsView: View {
                 TextField("Nom d'utilisateur", text: $username)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
+                    .onChange(of: username) { scheduleSave() }
                 
                 SecureField("Mot de passe d'application (App Password)", text: $appPassword)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: appPassword) { scheduleSave() }
                 
                 HStack {
                     Button(action: testConnection) {
@@ -85,9 +95,53 @@ public struct SettingsView: View {
             Section("Options de Synchronisation") {
                 TextField("Dossier distant sur Nextcloud", text: $targetFolder)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: targetFolder) { scheduleSave() }
                 
                 Toggle("Supprimer sur Nextcloud si supprimé localement (Miroir exact)", isOn: $deleteRemote)
                     .toggleStyle(.checkbox)
+                    .onChange(of: deleteRemote) { applySettings() }
+            }
+            
+            Section("Vérification de la sauvegarde") {
+                Toggle("Vérifier automatiquement l'intégrité de la sauvegarde", isOn: $autoVerify)
+                    .toggleStyle(.checkbox)
+                    .help("Liste périodiquement les fichiers sur Nextcloud et renvoie ceux qui auraient disparu ou seraient corrompus (long sur les grosses bibliothèques).")
+                    .onChange(of: autoVerify) { applySettings() }
+                
+                Picker("Fréquence", selection: $verifyIntervalDays) {
+                    Text("Tous les jours").tag(1)
+                    Text("Chaque semaine").tag(7)
+                    Text("Chaque mois").tag(30)
+                }
+                .disabled(!autoVerify)
+                .onChange(of: verifyIntervalDays) { applySettings() }
+                
+                HStack {
+                    Button(action: verifyNow) {
+                        if isVerifying {
+                            HStack(spacing: 6) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Vérification en cours...")
+                            }
+                        } else {
+                            Text("Vérifier maintenant")
+                        }
+                    }
+                    .disabled(isSyncing || isVerifying || !engine.config.isValid)
+                    
+                    if let last = engine.lastVerificationDate {
+                        Text("Dernière vérification : \(last.formatted(date: .numeric, time: .shortened))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                if isSyncing {
+                    Text("Vérification indisponible pendant une synchronisation en cours.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Section("Général") {
@@ -95,20 +149,13 @@ public struct SettingsView: View {
                     .toggleStyle(.checkbox)
                     .help("Démarre l'agent en arrière-plan à l'ouverture de session (nécessite l'application dans /Applications).")
             }
-            
-            Section {
-                HStack {
-                    Spacer()
-                    Button("Enregistrer les réglages") {
-                        saveSettings()
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
         }
         .padding(20)
         .onAppear {
             loadCurrentConfig()
+        }
+        .onDisappear {
+            applySettings()
         }
     }
     
@@ -139,14 +186,48 @@ public struct SettingsView: View {
         self.appPassword = current.appPassword
         self.targetFolder = current.targetFolder
         self.deleteRemote = current.deleteRemoteOnLocalDelete
+        self.autoVerify = current.autoVerifyEnabled
+        self.verifyIntervalDays = current.verifyIntervalDays
         self.launchAtLogin = SMAppService.mainApp.status == .enabled
+        self.didLoadConfig = true
     }
     
-    private func saveSettings() {
+    private var isSyncing: Bool {
+        // Une synchronisation en pause reste une synchronisation en cours.
+        switch engine.state {
+        case .syncing, .paused:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    private func verifyNow() {
+        isVerifying = true
+        engine.performIntegrityVerification()
+        // Le scan tourne en arrière-plan (état .verifying) : on rétablit le bouton au prochain tick.
+        Task {
+            while isVerifying {
+                try? await Task.sleep(for: .seconds(1))
+                if case .verifying = engine.state {
+                    continue
+                }
+                isVerifying = false
+                return
+            }
+        }
+    }
+    
+    /// Applique immédiatement les réglages courants (champs texte inclus) au moteur.
+    private func applySettings() {
+        guard didLoadConfig else { return }
+        
         var normalizedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
         if !normalizedURL.isEmpty && !normalizedURL.lowercased().hasPrefix("http://") && !normalizedURL.lowercased().hasPrefix("https://") {
             normalizedURL = "https://" + normalizedURL
-            self.serverURL = normalizedURL
+            if normalizedURL != serverURL {
+                self.serverURL = normalizedURL
+            }
         }
         
         let newConfig = NextcloudConfig(
@@ -154,16 +235,38 @@ public struct SettingsView: View {
             username: username.trimmingCharacters(in: .whitespacesAndNewlines),
             appPassword: appPassword.trimmingCharacters(in: .whitespacesAndNewlines),
             targetFolder: targetFolder.trimmingCharacters(in: .whitespacesAndNewlines),
-            deleteRemoteOnLocalDelete: deleteRemote
+            deleteRemoteOnLocalDelete: deleteRemote,
+            autoVerifyEnabled: autoVerify,
+            verifyIntervalDays: verifyIntervalDays
         )
+        
+        // Les réglages secondaires (miroir, vérification, fréquence) ne nécessitent pas de nouveau scan :
+        // un scan complet n'est lancé que si la connexion ou le dossier distant ont changé.
+        let connectionChanged = newConfig.serverURL != engine.config.serverURL
+            || newConfig.username != engine.config.username
+            || newConfig.appPassword != engine.config.appPassword
+            || newConfig.targetFolder != engine.config.targetFolder
+        
         newConfig.saveToKeychain()
         engine.config = newConfig
         engine.log(String(localized: "Configuration Nextcloud sauvegardée."), level: .info)
         
-        if newConfig.isValid {
-            engine.performFullScan()
-        } else {
-            engine.log(String(localized: "La configuration Nextcloud est incomplète."), level: .warning)
+        if connectionChanged {
+            if newConfig.isValid {
+                engine.performFullScan()
+            } else {
+                engine.log(String(localized: "La configuration Nextcloud est incomplète."), level: .warning)
+            }
+        }
+    }
+    
+    /// Sauvegarde différée (0,6 s) : évite d'appliquer les réglages à chaque frappe pendant la saisie.
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task {
+            try? await Task.sleep(for: .seconds(0.6))
+            guard !Task.isCancelled else { return }
+            applySettings()
         }
     }
     

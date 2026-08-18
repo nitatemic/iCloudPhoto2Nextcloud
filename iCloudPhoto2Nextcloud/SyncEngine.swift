@@ -13,6 +13,7 @@ public nonisolated enum EngineState: Equatable, Sendable {
     case idle
     case syncing(progress: Double, message: String)
     case paused(progress: Double, message: String)
+    case verifying(progress: Double, message: String)
     case unauthorized
     case error(String)
 }
@@ -44,6 +45,16 @@ public final class SyncEngine: PhotoObserverDelegate {
             Task {
                 await webDavService.updateConfig(config)
             }
+            restartVerificationScheduler()
+        }
+    }
+    
+    /// Dernière vérification d'intégrité de la sauvegarde terminée (persistée entre sessions).
+    public private(set) var lastVerificationDate: Date? {
+        didSet {
+            if let lastVerificationDate {
+                UserDefaults.standard.set(lastVerificationDate.timeIntervalSince1970, forKey: Self.lastVerificationKey)
+            }
         }
     }
     
@@ -56,6 +67,12 @@ public final class SyncEngine: PhotoObserverDelegate {
     private var syncTask: Task<Void, Never>?
     /// Vrai si des changements sont survenus pendant un cycle de sync : un scan de suivi sera lancé en fin de cycle.
     private var needsFollowUpScan = false
+    /// Vrai pendant un scan de vérification de la sauvegarde (affiche l'état .verifying).
+    private var isVerifying = false
+    /// Tâche de vérification périodique de la sauvegarde.
+    private var schedulerTask: Task<Void, Never>?
+    private static let lastVerificationKey = "nc_last_verification"
+    private static let schedulerTick: Duration = .seconds(3600)
     /// Suppressions locales reçues pendant un cycle de sync, traitées en fin de cycle
     /// (évite de supprimer un modèle SwiftData encore référencé par la boucle d'upload en cours).
     private var pendingDeletionIDs: [String] = []
@@ -107,6 +124,8 @@ public final class SyncEngine: PhotoObserverDelegate {
         self.modelContext = ModelContext(container)
 
         self.photoObserver.delegate = self
+        let storedVerification = UserDefaults.standard.object(forKey: Self.lastVerificationKey) as? TimeInterval
+        self.lastVerificationDate = storedVerification.map(Date.init(timeIntervalSince1970:))
         updateStatsFromDatabase()
         loadRecentSyncedThumbnails()
 
@@ -119,6 +138,8 @@ public final class SyncEngine: PhotoObserverDelegate {
     public func startEngine() {
         log(String(localized: "Démarrage du moteur de synchronisation..."), level: .info)
         photoObserver.startObserving()
+        restartVerificationScheduler()
+        checkScheduledVerification()
         
         Task {
             let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
@@ -146,6 +167,8 @@ public final class SyncEngine: PhotoObserverDelegate {
         syncTask = nil
         retryTask?.cancel()
         retryTask = nil
+        schedulerTask?.cancel()
+        schedulerTask = nil
     }
     
     public func log(_ message: String, level: SyncLogEntry.LogLevel = .info) {
@@ -474,6 +497,166 @@ public final class SyncEngine: PhotoObserverDelegate {
         descriptor.sortBy = [SortDescriptor(\.lastSyncedAt, order: .reverse)]
         descriptor.fetchLimit = maxRecentSyncedThumbnails
         recentSyncedIDs = (try? modelContext.fetch(descriptor))?.map(\.localIdentifier) ?? []
+    }
+
+    // MARK: - Vérification de la sauvegarde (intégrité distante)
+    /// Déclenche un scan complet : chaque dossier `yyyy/MM` connu en base est listé sur
+    /// Nextcloud puis comparé (présence + taille) aux fichiers attendus. Les éléments
+    /// endommagés sont marqués `failed`, puis renvoyés par un cycle de sync de réparation.
+    public func performIntegrityVerification() {
+        guard config.isValid else {
+            self.state = .error(String(localized: "Configuration Nextcloud incomplète."))
+            log(String(localized: "Vérification impossible : configuration Nextcloud manquante ou invalide."), level: .warning)
+            return
+        }
+        guard !isSyncingInProcess else {
+            log(String(localized: "Vérification de la sauvegarde impossible pendant une synchronisation en cours."), level: .warning)
+            return
+        }
+
+        isSyncingInProcess = true
+        isVerifying = true
+        log(String(localized: "Lancement de la vérification de la sauvegarde sur Nextcloud..."), level: .info)
+        self.state = .verifying(progress: 0.0, message: String(localized: "Vérification de la sauvegarde..."))
+
+        syncTask = Task {
+            await runBackupVerification()
+        }
+    }
+    
+    private func runBackupVerification() async {
+        do {
+            let syncedRaw = SyncStatus.synced.rawValue
+            let descriptor = FetchDescriptor<SyncedAsset>(predicate: #Predicate { $0.syncStatusRaw == syncedRaw })
+            let syncedAssets = (try? modelContext.fetch(descriptor)) ?? []
+
+            if syncedAssets.isEmpty {
+                log(String(localized: "Aucun élément synchronisé à vérifier."), level: .info)
+                lastVerificationDate = Date()
+                isVerifying = false
+                state = .idle
+                finishSyncCycle()
+                return
+            }
+
+            let assetsByFolder = Dictionary(grouping: syncedAssets, by: \.remotePath)
+            let folders = assetsByFolder.keys.sorted()
+            let totalResources = syncedAssets.reduce(0) { $0 + $1.resources.count }
+
+            var remoteFilesByFolder: [String: [RemoteFileInfo]] = [:]
+            var processedResources = 0
+
+            for (folderIndex, folder) in folders.enumerated() {
+                if Task.isCancelled { break }
+
+                // Pause (granularité : un dossier de la photothèque)
+                while isPaused {
+                    let currentProgress = totalResources == 0 ? 0 : Double(processedResources) / Double(totalResources)
+                    state = .paused(progress: currentProgress, message: String(localized: "Vérification en pause"))
+                    try? await Task.sleep(for: .seconds(1))
+                }
+
+                remoteFilesByFolder[folder] = try await webDavService.listDirectory(remoteRelativePath: folder)
+                if Task.isCancelled { break }
+
+                processedResources += assetsByFolder[folder]?.reduce(0) { $0 + $1.resources.count } ?? 0
+                let progress = totalResources == 0 ? 0 : Double(processedResources) / Double(totalResources)
+                state = .verifying(progress: progress, message: String(localized: "Vérification \(folderIndex + 1) / \(folders.count) dossiers"))
+            }
+
+            if Task.isCancelled {
+                log(String(localized: "Vérification de la sauvegarde annulée."), level: .warning)
+                isVerifying = false
+                finishSyncCycle()
+                return
+            }
+
+            let infos = syncedAssets.map { asset in
+                SyncedAssetInfo(
+                    localIdentifier: asset.localIdentifier,
+                    remotePath: asset.remotePath,
+                    resources: asset.resources.map {
+                        SyncedResourceInfo(remoteFilename: $0.remoteFilename, fileSize: $0.fileSize)
+                    }
+                )
+            }
+            let report = BackupVerifier.evaluateVerification(assets: infos, remoteFilesByFolder: remoteFilesByFolder)
+
+            // Marque les assets endommagés : le cycle de sync suivant les renverra.
+            for asset in syncedAssets {
+                let assetMissing = report.missingFiles.filter { $0.hasPrefix("\(asset.remotePath)/") }
+                let assetMismatches = report.sizeMismatches.filter { $0.filename.hasPrefix("\(asset.remotePath)/") }
+                guard !assetMissing.isEmpty || !assetMismatches.isEmpty else { continue }
+
+                asset.syncStatus = .failed
+                if let firstMissing = assetMissing.first {
+                    asset.errorMessage = String(localized: "Fichier manquant sur le serveur (vérification) : \(firstMissing)")
+                } else if let firstMismatch = assetMismatches.first {
+                    asset.errorMessage = String(localized: "Taille incohérente sur le serveur (vérification) : \(firstMismatch.filename)")
+                }
+                recentSyncedIDs.removeAll { $0 == asset.localIdentifier }
+            }
+            try? modelContext.save()
+
+            for file in report.missingFiles {
+                log(String(localized: "Fichier manquant sur Nextcloud détecté : \(file)"), level: .error)
+            }
+            for mismatch in report.sizeMismatches {
+                log(String(localized: "Taille incohérente pour \(mismatch.filename) (attendu \(mismatch.expectedSize), trouvé \(mismatch.foundSize))"), level: .error)
+            }
+
+            lastVerificationDate = Date()
+
+            let damagedCount = report.damagedLocalIDs.count
+            if damagedCount > 0 {
+                log(String(localized: "Vérification terminée : \(damagedCount) élément(s) endommagé(s) sur \(report.checkedResourceCount) fichier(s) contrôlé(s). Ré-upload planifié."), level: .warning)
+            } else {
+                log(String(localized: "Vérification terminée : \(report.checkedResourceCount) fichier(s) contrôlé(s), aucun problème détecté."), level: .success)
+            }
+            if !report.orphanFiles.isEmpty {
+                let examples = report.orphanFiles.prefix(5).joined(separator: ", ")
+                log(String(localized: "\(report.orphanFiles.count) fichier(s) non tracé(s) en base présents sur le serveur (signalés, non supprimés) : \(examples)"), level: .info)
+            }
+
+            isVerifying = false
+            state = .idle
+            finishSyncCycle()
+
+            if damagedCount > 0 {
+                log(String(localized: "Lancement de la synchronisation de réparation..."), level: .info)
+                performFullScan()
+            }
+        } catch {
+            log(String(localized: "Erreur pendant la vérification de la sauvegarde : \(error.localizedDescription)"), level: .error)
+            isVerifying = false
+            state = .idle
+            finishSyncCycle()
+        }
+    }
+    
+    // MARK: - Vérification périodique programmée
+    /// Redémarre la boucle de planification après un changement de config ou au lancement.
+    private func restartVerificationScheduler() {
+        schedulerTask?.cancel()
+        schedulerTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.schedulerTick)
+                guard !Task.isCancelled else { return }
+                self?.checkScheduledVerification()
+            }
+        }
+    }
+    
+    /// Vérifie si une vérification périodique est due (config activée + échéance dépassée + moteur libre).
+    private func checkScheduledVerification() {
+        guard config.autoVerifyEnabled, config.isValid else { return }
+        guard !isSyncingInProcess, !isVerifying else { return }
+        let intervalSeconds = TimeInterval(max(config.verifyIntervalDays, 1) * 86_400)
+        if let last = lastVerificationDate, Date().timeIntervalSince(last) < intervalSeconds {
+            return
+        }
+        log(String(localized: "Vérification périodique de la sauvegarde déclenchée."), level: .info)
+        performIntegrityVerification()
     }
 
     // MARK: - Fin de cycle (scan de suivi + suppressions différées)

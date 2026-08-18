@@ -25,6 +25,7 @@ macOS menu-bar agent that syncs your iCloud Photo Library to a [Nextcloud](https
 - **Pause / resume** at any time, forced full scan on demand.
 - **Rich menu**: sync status, statistics, thumbnails of the last 10 synced photos, direct link to Photos settings when permission is missing.
 - **Settings & Logs window**: WebDAV connection test, configuration, filterable logs (last 200 entries).
+- **Backup verification**: manual or scheduled scan (daily/weekly/monthly) that lists the server content and detects **missing** or **truncated** files (size mismatch). Damaged items are **re-uploaded automatically**.
 - **Bilingual French/English**: automatic detection of the system language — French if the system is French, English otherwise.
 
 ## Layout on the server

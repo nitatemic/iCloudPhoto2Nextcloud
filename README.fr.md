@@ -25,6 +25,7 @@ Agent macOS de barre de menus qui synchronise votre photothèque iCloud vers un 
 - **Pause / reprise** à tout moment, scan complet forcé à la demande.
 - **Menu enrichi** : état de la sync, statistiques, miniatures des 10 dernières photos synchronisées, accès direct aux réglages Photos si l'autorisation manque.
 - **Fenêtre Réglages & Logs** : test de connexion WebDAV, configuration, logs filtrables (200 dernières entrées).
+- **Vérification de la sauvegarde** : scan manuel ou périodique (jour/semaine/mois) qui liste le contenu du serveur et détecte les fichiers **manquants** ou **tronqués** (taille incohérente). Les éléments endommagés sont **ré-uploadés automatiquement**.
 - **Bilingue français/anglais** : détection automatique de la langue système — français si le système est en français, anglais sinon.
 
 ## Organisation sur le serveur

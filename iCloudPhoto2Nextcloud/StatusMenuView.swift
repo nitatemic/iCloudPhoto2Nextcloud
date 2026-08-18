@@ -18,11 +18,13 @@ public struct StatusMenuView: View {
             
             Divider()
             
-            // Progress Bar if Syncing or Paused
+            // Progress Bar if Syncing or Paused or Verifying
             if case .syncing(let progress, let message) = engine.state {
                 progressSection(progress: progress, message: message, isPaused: false)
             } else if case .paused(let progress, let message) = engine.state {
                 progressSection(progress: progress, message: message, isPaused: true)
+            } else if case .verifying(let progress, let message) = engine.state {
+                progressSection(progress: progress, message: message, isPaused: false)
             }
             
             // Stats summary grid
@@ -72,6 +74,18 @@ public struct StatusMenuView: View {
                     engine.performFullScan()
                 }
                 
+                menuButton(title: isVerifying ? "Vérification en cours..." : "Vérifier la sauvegarde", icon: "checkmark.shield", disabled: isVerifying || isSyncing) {
+                    engine.performIntegrityVerification()
+                }
+                
+                if isSyncing {
+                    Text("Vérification disponible une fois la synchronisation terminée.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 4)
+                }
+                
                 menuButton(title: "Réglages & Logs...", icon: "gearshape") {
                     openSettingsWindow()
                 }
@@ -103,13 +117,23 @@ public struct StatusMenuView: View {
     }
     
     private var isSyncing: Bool {
-        if case .syncing = engine.state { return true }
+        // Une synchronisation en pause reste une synchronisation en cours.
+        switch engine.state {
+        case .syncing, .paused:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    private var isVerifying: Bool {
+        if case .verifying = engine.state { return true }
         return false
     }
     
     private var isSyncingOrPaused: Bool {
         switch engine.state {
-        case .syncing, .paused:
+        case .syncing, .paused, .verifying:
             return true
         default:
             return false
@@ -168,6 +192,9 @@ public struct StatusMenuView: View {
         case .syncing:
             Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
                 .foregroundColor(.blue)
+        case .verifying:
+            Image(systemName: "checkmark.shield.fill")
+                .foregroundColor(.blue)
         case .paused:
             Image(systemName: "pause.circle.fill")
                 .foregroundColor(.orange)
@@ -187,6 +214,8 @@ public struct StatusMenuView: View {
             }
             return String(localized: "À jour")
         case .syncing(_, let msg):
+            return msg
+        case .verifying(_, let msg):
             return msg
         case .paused(_, let msg):
             return msg

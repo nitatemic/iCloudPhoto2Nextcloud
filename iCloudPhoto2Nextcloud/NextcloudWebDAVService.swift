@@ -12,6 +12,7 @@ public nonisolated enum WebDAVError: LocalizedError, Sendable {
     case chunkingFailed(String)
     case networkError(Error)
     case fileNotFound
+    case invalidResponse(String)
     
     public var errorDescription: String? {
         switch self {
@@ -27,7 +28,20 @@ public nonisolated enum WebDAVError: LocalizedError, Sendable {
             return String(localized: "Erreur réseau: \(error.localizedDescription)")
         case .fileNotFound:
             return String(localized: "Le fichier distant n'existe pas.")
+        case .invalidResponse(let detail):
+            return String(localized: "Réponse WebDAV invalide: \(detail)")
         }
+    }
+}
+
+/// Informations renvoyées par un PROPFIND sur un fichier distant.
+public nonisolated struct RemoteFileInfo: Sendable, Equatable {
+    public let filename: String
+    public let fileSize: Int64?
+    
+    public init(filename: String, fileSize: Int64?) {
+        self.filename = filename
+        self.fileSize = fileSize
     }
 }
 
@@ -90,6 +104,91 @@ public actor NextcloudWebDAVService {
         } catch {
             throw WebDAVError.networkError(error)
         }
+    }
+    
+    // MARK: - Directory Listing (PROPFIND Depth: 1)
+    /// Liste les fichiers (pas les sous-dossiers) d'un dossier distant. Un dossier
+    /// inexistant (404) retourne une liste vide : les éléments attendus y seront
+    /// considérés comme manquants par le scan de vérification.
+    public func listDirectory(remoteRelativePath: String) async throws -> [RemoteFileInfo] {
+        guard let baseURL = config.webDavBaseURL else {
+            throw WebDAVError.invalidConfig
+        }
+        
+        let targetURL = buildURL(baseURL: baseURL, relativePath: remoteRelativePath)
+        var request = makeRequest(url: targetURL, method: "PROPFIND")
+        request.setValue("1", forHTTPHeaderField: "Depth")
+        request.setValue("application/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Self.propfindRequestBody
+        
+        do {
+            let (data, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 404 {
+                    return []
+                }
+                if !((200...299).contains(httpResponse.statusCode) || httpResponse.statusCode == 207) {
+                    throw WebDAVError.httpError(statusCode: httpResponse.statusCode, message: String(localized: "Échec du listage du dossier \(remoteRelativePath)"))
+                }
+            }
+            return Self.parseMultistatusResponse(data)
+        } catch let error as WebDAVError {
+            throw error
+        } catch {
+            throw WebDAVError.networkError(error)
+        }
+    }
+    
+    /// Corps XML de la requête PROPFIND (getcontentlength + resourcetype pour distinguer fichiers/dossiers).
+    private static let propfindRequestBody = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <d:propfind xmlns:d="DAV:">
+      <d:prop>
+        <d:getcontentlength/>
+        <d:resourcetype/>
+      </d:prop>
+    </d:propfind>
+    """.data(using: .utf8)
+    
+    /// Parse une réponse multistatus PROPFIND en conservant uniquement les fichiers
+    /// (href ne finissant pas par "/"), avec leur taille quand elle est fournie.
+    /// Décodage percent de l'URL : les noms de fichiers peuvent contenir des espaces ou caractères spéciaux.
+    nonisolated static func parseMultistatusResponse(_ data: Data) -> [RemoteFileInfo] {
+        guard let xml = String(data: data, encoding: .utf8) else { return [] }
+        
+        let hrefPattern = #"<d:href>([^<]*)</d:href>"#
+        let lengthPattern = #"<d:getcontentlength>\s*(\d+)\s*</d:getcontentlength>"#
+        
+        guard let hrefRegex = try? NSRegularExpression(pattern: hrefPattern),
+              let lengthRegex = try? NSRegularExpression(pattern: lengthPattern) else { return [] }
+        
+        let nsString = xml as NSString
+        let fullRange = NSRange(location: 0, length: nsString.length)
+        
+        var results: [RemoteFileInfo] = []
+        let hrefMatches = hrefRegex.matches(in: xml, range: fullRange)
+        
+        for match in hrefMatches {
+            let href = nsString.substring(with: match.range(at: 1))
+            guard !href.hasSuffix("/") else { continue } // dossiers ignorés
+            
+            var fileName = href
+            if let slashRange = href.range(of: "/", options: .backwards) {
+                fileName = String(href[slashRange.upperBound...])
+            }
+            fileName = fileName.removingPercentEncoding ?? fileName
+            
+            var size: Int64?
+            let lengthMatch = lengthRegex.firstMatch(in: xml, options: [], range: NSRange(location: match.range.upperBound, length: nsString.length - match.range.upperBound))
+            if let lengthMatch {
+                let sizeString = nsString.substring(with: lengthMatch.range(at: 1))
+                size = Int64(sizeString)
+            }
+            
+            results.append(RemoteFileInfo(filename: fileName, fileSize: size))
+        }
+        
+        return results
     }
     
     // MARK: - Helper for Multi-Component Paths

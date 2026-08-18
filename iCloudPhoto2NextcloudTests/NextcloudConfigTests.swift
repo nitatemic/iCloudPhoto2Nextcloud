@@ -50,6 +50,46 @@ struct NextcloudConfigTests {
         #expect(url.absoluteString == "https://nextcloud.example.com/remote.php/dav/files/user%20name@exemple.fr/")
     }
     
+    @Test("Test verification settings defaults and persistence")
+    func testVerificationSettings() throws {
+        let defaults = UserDefaults.standard
+        let autoVerifyKey = "nc_auto_verify"
+        let intervalKey = "nc_verify_interval_days"
+        let savedAuto = defaults.object(forKey: autoVerifyKey) as? Bool
+        let savedInterval = defaults.object(forKey: intervalKey) as? Int
+        
+        let config = NextcloudConfig(
+            serverURL: "https://nextcloud.example.com",
+            username: "user",
+            appPassword: "pass",
+            autoVerifyEnabled: true,
+            verifyIntervalDays: 30
+        )
+        config.saveToKeychain()
+        defer {
+            // Restaure l'état Utilisateur précédent pour ne pas polluer les autres tests
+            if let savedAuto {
+                defaults.set(savedAuto, forKey: autoVerifyKey)
+            } else {
+                defaults.removeObject(forKey: autoVerifyKey)
+            }
+            if let savedInterval {
+                defaults.set(savedInterval, forKey: intervalKey)
+            } else {
+                defaults.removeObject(forKey: intervalKey)
+            }
+        }
+        
+        let loaded = NextcloudConfig.loadFromKeychain()
+        #expect(loaded.autoVerifyEnabled == true)
+        #expect(loaded.verifyIntervalDays == 30)
+        
+        // Valeurs par défaut d'un config fraîche
+        let fresh = NextcloudConfig()
+        #expect(fresh.autoVerifyEnabled == false)
+        #expect(fresh.verifyIntervalDays == 7)
+    }
+    
     @Test("Test KeychainManager save, read, and delete")
     func testKeychainManager() throws {
         let testKey = "test_credentials_key_\(UUID().uuidString)"
