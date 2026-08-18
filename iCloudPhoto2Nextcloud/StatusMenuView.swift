@@ -86,6 +86,7 @@ public struct StatusMenuView: View {
             
             // Footer Quit
             menuButton(title: "Quitter", icon: "power", isDestructive: true) {
+                SyncEngine.shared.stopEngine()
                 NSApplication.shared.terminate(nil)
             }
         }

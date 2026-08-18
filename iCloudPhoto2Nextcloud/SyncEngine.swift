@@ -123,7 +123,13 @@ public final class SyncEngine: PhotoObserverDelegate {
         Task {
             let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
             if status == .notDetermined {
-                _ = await photoObserver.requestAuthorization()
+                let newStatus = await photoObserver.requestAuthorization()
+                if newStatus == .authorized || newStatus == .limited {
+                    performFullScan()
+                } else {
+                    self.state = .unauthorized
+                    log(String(localized: "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système."), level: .error)
+                }
             } else if status == .denied || status == .restricted {
                 self.state = .unauthorized
                 log(String(localized: "Accès aux photos refusé. Veuillez accorder la permission dans Réglages Système."), level: .error)
@@ -131,6 +137,15 @@ public final class SyncEngine: PhotoObserverDelegate {
                 performFullScan()
             }
         }
+    }
+    
+    /// Annule les tâches en cours (appelé avant la fermeture de l'app pour
+    /// éviter de couper un upload en plein transfert).
+    public func stopEngine() {
+        syncTask?.cancel()
+        syncTask = nil
+        retryTask?.cancel()
+        retryTask = nil
     }
     
     public func log(_ message: String, level: SyncLogEntry.LogLevel = .info) {

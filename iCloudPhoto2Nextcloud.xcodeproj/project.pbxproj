@@ -29,9 +29,22 @@
 		38504BEA30225C5A006D2EA2 /* iCloudPhoto2NextcloudUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iCloudPhoto2NextcloudUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		38504C0130225C5A006D2EA2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 38504BD030225C56006D2EA2 /* iCloudPhoto2Nextcloud */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		38504BD330225C56006D2EA2 /* iCloudPhoto2Nextcloud */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				38504C0130225C5A006D2EA2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = iCloudPhoto2Nextcloud;
 			sourceTree = "<group>";
 		};
@@ -406,10 +419,11 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = iCloudPhoto2Nextcloud/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto to Nextcloud";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Alexandre de Lemeny-Makedone";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Permission requise pour synchroniser vos photos avec Nextcloud.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -445,10 +459,11 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = iCloudPhoto2Nextcloud/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "iCloudPhoto to Nextcloud";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Alexandre de Lemeny-Makedone";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Permission requise pour synchroniser vos photos avec Nextcloud.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
