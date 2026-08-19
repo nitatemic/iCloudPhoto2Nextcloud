@@ -75,13 +75,13 @@ jobs:
           done
 
           mkdir -p build/artifacts
-          ditto -c -k --sequesterRsrc \
+          ditto -c -k --sequesterRsrc --keepParent \
             build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/artifacts/iCloudPhoto2Nextcloud-Universal.zip
-          ditto -c -k --sequesterRsrc \
+          ditto -c -k --sequesterRsrc --keepParent \
             build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/artifacts/iCloudPhoto2Nextcloud-macOS-Intel-x86_64.zip
-          ditto -c -k --sequesterRsrc \
+          ditto -c -k --sequesterRsrc --keepParent \
             build/DerivedDataARM64/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/artifacts/iCloudPhoto2Nextcloud-macOS-AppleSilicon-arm64.zip
 
