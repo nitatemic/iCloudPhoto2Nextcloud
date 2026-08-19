@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Historique complet requis pour git rev-list --count (numéro de build)
+          fetch-depth: 0
 
       - name: Select Xcode 26
         uses: maxim-lobanov/setup-xcode@v1
@@ -62,16 +65,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
-      # Estampille le tag ci-<sha> (CFBundleVersion) pour que l'app sache
-      # quelle release elle exécute, puis empaquette les trois zips.
+      # Estampille le numéro de build incrémental (CFBundleVersion = nombre de
+      # commits, monte automatiquement à chaque push) et le tag ci-<sha>
+      # (clé CIBuildTag) pour que l'auto-update sache quelle release l'app exécute.
       - name: Stamp build tag and package zips
         run: |
           set -e
+          BUILD_NUMBER=$(git rev-list --count HEAD)
           for app in \
             build/DerivedDataUniversal/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/DerivedDataIntel/Build/Products/Release/iCloudPhoto2Nextcloud.app \
             build/DerivedDataARM64/Build/Products/Release/iCloudPhoto2Nextcloud.app; do
-            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ci-${{ github.sha }}" "$app/Contents/Info.plist"
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$app/Contents/Info.plist"
+            /usr/libexec/PlistBuddy -c "Add :CIBuildTag string ci-${{ github.sha }}" "$app/Contents/Info.plist"
           done
 
           mkdir -p build/artifacts

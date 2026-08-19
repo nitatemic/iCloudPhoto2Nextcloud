@@ -95,8 +95,12 @@ public nonisolated enum AppUpdater {
     /// Préférence : vérification des mises à jour au lancement.
     public static let checkOnLaunchKey = "nc_check_updates_on_launch"
     
-    /// Tag `ci-<sha>` estampillé dans le bundle par la CI (CFBundleVersion).
+    /// Tag `ci-<sha>` estampillé dans le bundle par la CI (clé `CIBuildTag`).
     public static var currentBuildTag: String? {
+        if let tag = Bundle.main.infoDictionary?["CIBuildTag"] as? String,
+           tag.hasPrefix("ci-") { return tag }
+        // Compatibilité : les builds antérieurs à l'introduction de `CIBuildTag`
+        // portaient le tag dans CFBundleVersion.
         guard let version = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
               version.hasPrefix("ci-") else { return nil }
         return version
