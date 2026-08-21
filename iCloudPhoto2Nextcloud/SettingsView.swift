@@ -352,6 +352,15 @@ public struct SettingsView: View {
                 let credentials = try await NextcloudLoginFlow.poll(session: session)
                 
                 self.serverURL = credentials.serverURL.isEmpty ? self.serverURL : credentials.serverURL
+                
+                // Sauvegarder les identifiants reçus AVANT applySettings()
+                var newConfig = engine.config
+                newConfig.serverURL = self.serverURL
+                newConfig.username = credentials.loginName
+                newConfig.appPassword = credentials.appPassword
+                newConfig.saveToKeychain()
+                engine.config = newConfig
+                
                 applySettings()
                 self.loginFlowMessage = String(localized: "Connexion réussie : appareil ajouté dans Nextcloud.")
                 engine.log(String(localized: "Connexion via navigateur réussie pour \(credentials.loginName)."), level: .success)
