@@ -11,8 +11,6 @@ public struct SettingsView: View {
     @Bindable var engine = SyncEngine.shared
     
     @State private var serverURL: String = ""
-    @State private var username: String = ""
-    @State private var appPassword: String = ""
     @State private var targetFolder: String = "Photos/iCloud"
     @State private var deleteRemote: Bool = true
     @State private var autoVerify: Bool = false
@@ -26,6 +24,8 @@ public struct SettingsView: View {
     @State private var isLoginFlowActive = false
     @State private var loginFlowMessage: String?
     @State private var loginFlowTask: Task<Void, Never>?
+    
+    @State private var showResetConfirmation = false
     
     @State private var launchAtLogin: Bool = false
     @State private var checkUpdatesOnLaunch: Bool = true
@@ -59,18 +59,6 @@ public struct SettingsView: View {
                     }
                     .padding(.vertical, 2)
                 }
-                
-                TextField("Nom d'utilisateur", text: $username)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    .onChange(of: username) { scheduleSave() }
-                
-                SecureField("Mot de passe d'application (App Password)", text: $appPassword)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: appPassword) { scheduleSave() }
-                
-                Divider()
-                    .padding(.vertical, 4)
                 
                 HStack {
                     Button(action: startBrowserLogin) {
@@ -111,7 +99,7 @@ public struct SettingsView: View {
                             Text("Tester la connexion")
                         }
                     }
-                    .disabled(isTestingConnection || serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || appPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(isTestingConnection || serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !engine.config.isValid)
                     
                     if let result = testResult {
                         switch result {
@@ -192,6 +180,27 @@ public struct SettingsView: View {
                         UserDefaults.standard.set(checkUpdatesOnLaunch, forKey: AppUpdater.checkOnLaunchKey)
                     }
             }
+            
+            Section("Maintenance") {
+                Button(role: .destructive, action: { showResetConfirmation = true }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                            .foregroundColor(.red)
+                        Text("Réinitialiser la synchronisation")
+                    }
+                }
+                .help("Supprime la base locale et force un scan complet au prochain démarrage. Les fichiers sur Nextcloud ne sont PAS supprimés.")
+                .confirmationDialog(
+                    "Réinitialiser la synchronisation ?",
+                    isPresented: $showResetConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Réinitialiser", role: .destructive) { resetSync() }
+                    Button("Annuler", role: .cancel) { }
+                } message: {
+                    Text("Cela efface l'historique de synchronisation local. Au redémarrage, l'app refera l'index complet de la photothèque et la comparera à Nextcloud. Les fichiers sur Nextcloud sont conservés.")
+                }
+            }
         }
         .padding(20)
         .onAppear {
@@ -225,8 +234,6 @@ public struct SettingsView: View {
     private func loadCurrentConfig() {
         let current = engine.config
         self.serverURL = current.serverURL
-        self.username = current.username
-        self.appPassword = current.appPassword
         self.targetFolder = current.targetFolder
         self.deleteRemote = current.deleteRemoteOnLocalDelete
         self.autoVerify = current.autoVerifyEnabled
@@ -274,10 +281,13 @@ public struct SettingsView: View {
             }
         }
         
+        // Préserve les identifiants existants (venant du login flow) ; on ne modifie
+        // que l'URL, le dossier distant et les options.
+        let current = engine.config
         let newConfig = NextcloudConfig(
             serverURL: normalizedURL,
-            username: username.trimmingCharacters(in: .whitespacesAndNewlines),
-            appPassword: appPassword.trimmingCharacters(in: .whitespacesAndNewlines),
+            username: current.username,
+            appPassword: current.appPassword,
             targetFolder: targetFolder.trimmingCharacters(in: .whitespacesAndNewlines),
             deleteRemoteOnLocalDelete: deleteRemote,
             autoVerifyEnabled: autoVerify,
@@ -287,8 +297,6 @@ public struct SettingsView: View {
         // Les réglages secondaires (miroir, vérification, fréquence) ne nécessitent pas de nouveau scan :
         // un scan complet n'est lancé que si la connexion ou le dossier distant ont changé.
         let connectionChanged = newConfig.serverURL != engine.config.serverURL
-            || newConfig.username != engine.config.username
-            || newConfig.appPassword != engine.config.appPassword
             || newConfig.targetFolder != engine.config.targetFolder
         
         newConfig.saveToKeychain()
@@ -344,8 +352,6 @@ public struct SettingsView: View {
                 let credentials = try await NextcloudLoginFlow.poll(session: session)
                 
                 self.serverURL = credentials.serverURL.isEmpty ? self.serverURL : credentials.serverURL
-                self.username = credentials.loginName
-                self.appPassword = credentials.appPassword
                 applySettings()
                 self.loginFlowMessage = String(localized: "Connexion réussie : appareil ajouté dans Nextcloud.")
                 engine.log(String(localized: "Connexion via navigateur réussie pour \(credentials.loginName)."), level: .success)
@@ -366,24 +372,18 @@ public struct SettingsView: View {
         isTestingConnection = true
         testResult = nil
         
-        var normalizedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !normalizedURL.isEmpty && !normalizedURL.lowercased().hasPrefix("http://") && !normalizedURL.lowercased().hasPrefix("https://") {
-            normalizedURL = "https://" + normalizedURL
-            self.serverURL = normalizedURL
+        // Utilise la config déjà sauvegardée (avec identifiants du login flow)
+        guard engine.config.isValid else {
+            self.testResult = .failure(String(localized: "Configuration incomplète : connectez-vous d'abord via le navigateur."))
+            self.isTestingConnection = false
+            return
         }
         
-        let tempConfig = NextcloudConfig(
-            serverURL: normalizedURL,
-            username: username.trimmingCharacters(in: .whitespacesAndNewlines),
-            appPassword: appPassword.trimmingCharacters(in: .whitespacesAndNewlines),
-            targetFolder: targetFolder.trimmingCharacters(in: .whitespacesAndNewlines),
-            deleteRemoteOnLocalDelete: deleteRemote
-        )
-        
+        let normalizedURL = engine.config.serverURL
         engine.log(String(localized: "Lancement du test de connexion vers \(normalizedURL)..."), level: .info)
         
         Task {
-            let service = NextcloudWebDAVService(config: tempConfig)
+            let service = NextcloudWebDAVService(config: engine.config)
             do {
                 let success = try await service.testConnection()
                 if success {
@@ -398,6 +398,14 @@ public struct SettingsView: View {
                 engine.log(String(localized: "Erreur de test de connexion : \(error.localizedDescription)"), level: .error)
             }
             self.isTestingConnection = false
+        }
+    }
+    
+    /// Efface la base SwiftData locale et force un scan complet au redémarrage.
+    private func resetSync() {
+        engine.log(String(localized: "Réinitialisation de la synchronisation demandée..."), level: .warning)
+        Task {
+            await engine.resetSync()
         }
     }
 }

@@ -106,6 +106,28 @@ public actor NextcloudWebDAVService {
         }
     }
     
+    /// Vérifie si un dossier distant existe (PROPFIND Depth:0).
+    /// Retourne `false` si 404, `true` si 200/207, lance l'erreur sinon.
+    public func folderExists(path: String) async throws -> Bool {
+        guard let baseURL = config.webDavBaseURL else {
+            throw WebDAVError.invalidConfig
+        }
+        let targetURL = buildURL(baseURL: baseURL, relativePath: path)
+        var request = makeRequest(url: targetURL, method: "PROPFIND")
+        request.setValue("0", forHTTPHeaderField: "Depth")
+        
+        do {
+            let (_, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 404 { return false }
+                return (200...299).contains(httpResponse.statusCode) || httpResponse.statusCode == 207
+            }
+            return false
+        } catch {
+            throw WebDAVError.networkError(error)
+        }
+    }
+    
     // MARK: - Directory Listing (PROPFIND Depth: 1)
     /// Liste les fichiers (pas les sous-dossiers) d'un dossier distant. Un dossier
     /// inexistant (404) retourne une liste vide : les éléments attendus y seront

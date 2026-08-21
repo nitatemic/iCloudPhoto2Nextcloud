@@ -161,6 +161,36 @@ public final class SyncEngine: PhotoObserverDelegate {
         }
     }
     
+    /// Vérifie la connexion Nextcloud au démarrage : si la config est valide
+    /// mais le test WebDAV échoue, passe l'état à .unauthorized pour alerter l'utilisateur.
+    public func checkConnectionAtStartup() async {
+        guard config.isValid else { return }
+        let service = NextcloudWebDAVService(config: config)
+        do {
+            let ok = try await service.testConnection()
+            if !ok {
+                await MainActor.run {
+                    self.state = .unauthorized
+                    self.log(String(localized: "Connexion Nextcloud invalide au démarrage (identifiants expirés ou révoqués)."), level: .error)
+                }
+                return
+            }
+            // Vérifier que le dossier cible existe sur Nextcloud
+            let folderExists = try await service.folderExists(path: config.targetFolder)
+            if !folderExists {
+                await MainActor.run {
+                    self.state = .unauthorized
+                    self.log(String(localized: "Dossier cible introuvable sur Nextcloud : \(config.targetFolder). Vérifiez ou réinitialisez la sync."), level: .error)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                self.state = .unauthorized
+                self.log(String(localized: "Connexion Nextcloud échouée au démarrage : \(error.localizedDescription)"), level: .error)
+            }
+        }
+    }
+    
     /// Vérifie la présence d'une mise à jour au lancement (si activé dans les réglages).
     /// Silencieuse : le résultat est journalisé, jamais affiché en alerte.
     private func checkForUpdateIfEnabled() {
@@ -175,6 +205,29 @@ public final class SyncEngine: PhotoObserverDelegate {
                 // Échec discret au lancement (hors ligne, API indisponible...)
                 log(String(localized: "Vérification des mises à jour impossible : \(error.localizedDescription)"), level: .warning)
             }
+        }
+    }
+    
+    /// Réinitialise la base locale (efface tous les SyncedAsset) et réinitialise
+    /// les compteurs. À appeler depuis les réglages avant un redémarrage.
+    public func resetSync() async {
+        log(String(localized: "Réinitialisation de la synchronisation demandée..."), level: .warning)
+        do {
+            let descriptor = FetchDescriptor<SyncedAsset>()
+            let assets = try modelContext.fetch(descriptor)
+            for asset in assets {
+                modelContext.delete(asset)
+            }
+            try modelContext.save()
+            log(String(localized: "Base locale effacée. Redémarrage requis pour le scan complet."), level: .info)
+            
+            await MainActor.run {
+                self.state = .idle
+                self.pendingAssetsCount = 0
+                self.syncedAssetsCount = 0
+            }
+        } catch {
+            log(String(localized: "Erreur lors de la réinitialisation : \(error.localizedDescription)"), level: .error)
         }
     }
     

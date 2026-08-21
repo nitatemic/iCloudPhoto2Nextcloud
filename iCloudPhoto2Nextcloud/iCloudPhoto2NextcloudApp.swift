@@ -13,6 +13,8 @@ struct iCloudPhoto2NextcloudApp: App {
     init() {
         // Start background Sync Engine
         SyncEngine.shared.startEngine()
+        // Vérifier la connexion au démarrage (async, non-bloquant)
+        Task { await SyncEngine.shared.checkConnectionAtStartup() }
     }
     
     var body: some Scene {
