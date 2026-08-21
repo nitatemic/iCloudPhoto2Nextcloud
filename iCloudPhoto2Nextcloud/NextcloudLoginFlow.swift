@@ -158,7 +158,11 @@ public nonisolated enum NextcloudLoginFlow {
         } catch LoginFlowError.httpError(let code) where code == 401 || code == 404 || code == 405 || code == 400 {
             // Instances < 20 ou config proxy/auth : le point d'entrée v2 n'existe pas ou
             // renvoie 401 (ex. mod_security, brute-force protection).
-            return try await beginFlow(base: base, v2: false, session: session)
+            do {
+                return try await beginFlow(base: base, v2: false, session: session)
+            } catch LoginFlowError.httpError(let code) where code == 401 || code == 404 || code == 405 || code == 400 {
+                throw LoginFlowError.flowUnavailable
+            }
         }
     }
     
@@ -218,8 +222,8 @@ public nonisolated enum NextcloudLoginFlow {
                 switch http.statusCode {
                 case 200:
                     return try decodePollResult(data)
-                case 202, 404:
-                    break // en attente de l'autorisation
+                case 202, 401, 404:
+                    break // en attente de l'autorisation (certains serveurs renvoient 401)
                 case 403:
                     throw LoginFlowError.declined
                 default:
