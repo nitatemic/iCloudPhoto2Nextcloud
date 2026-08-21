@@ -155,8 +155,9 @@ public nonisolated enum NextcloudLoginFlow {
         
         do {
             return try await beginFlow(base: base, v2: true, session: session)
-        } catch LoginFlowError.httpError(let code) where code == 404 || code == 405 || code == 400 {
-            // Instances < 20 : le point d'entrée v2 n'existe pas.
+        } catch LoginFlowError.httpError(let code) where code == 401 || code == 404 || code == 405 || code == 400 {
+            // Instances < 20 ou config proxy/auth : le point d'entrée v2 n'existe pas ou
+            // renvoie 401 (ex. mod_security, brute-force protection).
             return try await beginFlow(base: base, v2: false, session: session)
         }
     }
