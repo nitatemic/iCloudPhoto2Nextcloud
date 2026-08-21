@@ -167,7 +167,7 @@ public nonisolated enum NextcloudLoginFlow {
     }
     
     private static func beginFlow(base: URL, v2: Bool, session: URLSession) async throws -> LoginFlowSession {
-        let path = v2 ? "index.php/login/flow/v2" : "index.php/login/flow"
+        let path = v2 ? "index.php/login/v2" : "index.php/login/flow"
         guard let url = URL(string: path, relativeTo: base)?.absoluteURL else {
             throw LoginFlowError.flowUnavailable
         }
