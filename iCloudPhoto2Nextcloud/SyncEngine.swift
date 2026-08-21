@@ -712,9 +712,15 @@ public final class SyncEngine: PhotoObserverDelegate {
             targetAsset.resources.removeAll()
             
             for resource in extractedResources {
-                let remoteFilePath = "\(targetAsset.remotePath)/\(resource.originalFilename)"
+                // Nom distant assaini (compatibilité NTFS/Windows) ; le nom d'origine
+                // est conservé pour l'affichage, la vérification utilise remoteFilename.
+                let remoteFilename = RemoteFilenameSanitizer.sanitize(resource.originalFilename)
+                if remoteFilename != resource.originalFilename {
+                    log(String(localized: "Nom de fichier nettoyé pour compatibilité : \(resource.originalFilename) → \(remoteFilename)"), level: .info)
+                }
+                let remoteFilePath = "\(targetAsset.remotePath)/\(remoteFilename)"
                 
-                log(String(localized: "Upload de \(resource.originalFilename) (\(ByteCountFormatter.string(fromByteCount: resource.fileSize, countStyle: .file)))..."), level: .info)
+                log(String(localized: "Upload de \(remoteFilename) (\(ByteCountFormatter.string(fromByteCount: resource.fileSize, countStyle: .file)))..."), level: .info)
                 
                 try await webDavService.uploadFile(localFileURL: resource.fileURL, remoteRelativePath: remoteFilePath) { _ in
                     // Sub progress
@@ -723,7 +729,7 @@ public final class SyncEngine: PhotoObserverDelegate {
                 let syncedRes = SyncedResource(
                     resourceTypeRaw: resource.resourceType.rawValue,
                     originalFilename: resource.originalFilename,
-                    remoteFilename: resource.originalFilename,
+                    remoteFilename: remoteFilename,
                     fileSize: resource.fileSize,
                     isSynced: true,
                     isAdjustment: resource.isAdjustment
