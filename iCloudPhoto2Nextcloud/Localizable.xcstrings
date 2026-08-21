@@ -239,6 +239,54 @@
         }
       }
     },
+    "Annuler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        }
+      }
+    },
+    "Application introuvable dans l'archive de mise à jour." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application not found in the update archive."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application introuvable dans l'archive de mise à jour."
+          }
+        }
+      }
+    },
+    "Aucun binaire de mise à jour pour cette architecture (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No update binary for this architecture (%@)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun binaire de mise à jour pour cette architecture (%@)."
+          }
+        }
+      }
+    },
     "Aucun élément synchronisé à vérifier." : {
       "localizations" : {
         "en" : {
@@ -251,6 +299,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun élément synchronisé à vérifier."
+          }
+        }
+      }
+    },
+    "Autorisation refusée dans le navigateur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization declined in the browser."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisation refusée dans le navigateur."
           }
         }
       }
@@ -284,6 +348,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Base locale indisponible : fonctionnement en mémoire volatile pour cette session."
+          }
+        }
+      }
+    },
+    "Ce serveur ne semble pas prendre en charge le flux de connexion via navigateur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This server does not seem to support the browser sign-in flow."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce serveur ne semble pas prendre en charge le flux de connexion via navigateur."
           }
         }
       }
@@ -376,6 +456,55 @@
         }
       }
     },
+    "Connexion annulée." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in cancelled."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion annulée."
+          }
+        }
+      }
+    },
+    "Connexion au serveur %@..." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting to server %@..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion au serveur %@..."
+          }
+        }
+      }
+    },
+    "Connexion en cours..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion en cours..."
+          }
+        }
+      }
+    },
     "Connexion HTTP non sécurisée : Vos identifiants voyagent en clair." : {
       "localizations" : {
         "en" : {
@@ -408,6 +537,22 @@
         }
       }
     },
+    "Connexion réussie : appareil ajouté dans Nextcloud." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in successful: device added in Nextcloud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion réussie : appareil ajouté dans Nextcloud."
+          }
+        }
+      }
+    },
     "Connexion Serveur Nextcloud" : {
       "localizations" : {
         "en" : {
@@ -420,6 +565,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connexion Serveur Nextcloud"
+          }
+        }
+      }
+    },
+    "Connexion via navigateur réussie pour %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browser sign-in successful for %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion via navigateur réussie pour %@."
+          }
+        }
+      }
+    },
+    "Démarrage du flux de connexion via navigateur vers %@..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting browser sign-in flow to %@..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage du flux de connexion via navigateur vers %@..."
           }
         }
       }
@@ -544,6 +721,22 @@
         }
       }
     },
+    "Échec de l'installation de la mise à jour : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update installation failed: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'installation de la mise à jour : %@"
+          }
+        }
+      }
+    },
     "Échec de la configuration du lancement au démarrage: %@" : {
       "localizations" : {
         "en" : {
@@ -556,6 +749,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec de la configuration du lancement au démarrage: %@"
+          }
+        }
+      }
+    },
+    "Échec de la décompression de la mise à jour." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to decompress the update."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la décompression de la mise à jour."
+          }
+        }
+      }
+    },
+    "Échec de la recherche de mise à jour : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update check failed: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la recherche de mise à jour : %@"
           }
         }
       }
@@ -592,6 +817,22 @@
         }
       }
     },
+    "Échec du flux de connexion : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in flow failed: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du flux de connexion : %@"
+          }
+        }
+      }
+    },
     "Échec du listage du dossier %@" : {
       "localizations" : {
         "en" : {
@@ -624,6 +865,54 @@
         }
       }
     },
+    "Empreinte SHA-256 absente de la release : mise à jour refusée." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SHA-256 checksum missing from release: update refused."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empreinte SHA-256 absente de la release : mise à jour refusée."
+          }
+        }
+      }
+    },
+    "Empreinte SHA-256 incorrecte : fichier téléchargé corrompu ou compromis." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SHA-256 checksum mismatch: downloaded file corrupted or compromised."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empreinte SHA-256 incorrecte : fichier téléchargé corrompu ou compromis."
+          }
+        }
+      }
+    },
+    "Empreinte SHA-256 vérifiée, installation..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SHA-256 checksum verified, installing..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empreinte SHA-256 vérifiée, installation..."
+          }
+        }
+      }
+    },
     "En attente" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -637,6 +926,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En attente"
+          }
+        }
+      }
+    },
+    "En attente d'autorisation dans le navigateur..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for authorization in the browser..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente d'autorisation dans le navigateur..."
           }
         }
       }
@@ -706,6 +1011,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur de test de connexion : %@"
+          }
+        }
+      }
+    },
+    "Erreur HTTP du flux de connexion (%lld)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in flow HTTP error (%lld)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur HTTP du flux de connexion (%lld)."
           }
         }
       }
@@ -786,6 +1107,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur pendant la vérification de la sauvegarde : %@"
+          }
+        }
+      }
+    },
+    "Erreur réseau : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network error: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur réseau : %@"
+          }
+        }
+      }
+    },
+    "Erreur réseau lors du flux de connexion : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network error during the sign-in flow: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur réseau lors du flux de connexion : %@"
           }
         }
       }
@@ -902,6 +1255,22 @@
         }
       }
     },
+    "Flux de connexion annulé par l'utilisateur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in flow cancelled by the user."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flux de connexion annulé par l'utilisateur."
+          }
+        }
+      }
+    },
     "Forcer un scan complet" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -931,6 +1300,22 @@
       "comment" : "A title for the status of the iCloud to Nextcloud sync.",
       "isCommentAutoGenerated" : true
     },
+    "Impossible d'écrire dans %@ : autorisations insuffisantes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot write to %@: insufficient permissions."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'écrire dans %@ : autorisations insuffisantes."
+          }
+        }
+      }
+    },
     "Impossible d'initier l'upload par morceaux Nextcloud" : {
       "localizations" : {
         "en" : {
@@ -943,6 +1328,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible d'initier l'upload par morceaux Nextcloud"
+          }
+        }
+      }
+    },
+    "Impossible d'ouvrir le navigateur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to open the browser."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'ouvrir le navigateur."
           }
         }
       }
@@ -1095,6 +1496,22 @@
         }
       }
     },
+    "Le délai d'autorisation est dépassé : annulez puis réessayez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization timed out: cancel and try again."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le délai d'autorisation est dépassé : annulez puis réessayez."
+          }
+        }
+      }
+    },
     "Le fichier distant n'existe pas." : {
       "localizations" : {
         "en" : {
@@ -1135,6 +1552,22 @@
       "comment" : "A label displayed above the logs and stats tab.",
       "isCommentAutoGenerated" : true
     },
+    "Mettre à jour et redémarrer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update and restart"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour et redémarrer"
+          }
+        }
+      }
+    },
     "Mettre en pause" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1148,6 +1581,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mettre en pause"
+          }
+        }
+      }
+    },
+    "Mise à jour %@ reportée." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update %@ postponed."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour %@ reportée."
+          }
+        }
+      }
+    },
+    "Mise à jour disponible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour disponible"
+          }
+        }
+      }
+    },
+    "Mise à jour disponible : %@. Menu → « Rechercher une mise à jour »." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available: %@. Menu → “Check for updates”."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour disponible : %@. Menu → « Rechercher une mise à jour »."
+          }
+        }
+      }
+    },
+    "Mise à jour installée, redémarrage..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update installed, restarting..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour installée, redémarrage..."
           }
         }
       }
@@ -1256,6 +1753,22 @@
         }
       }
     },
+    "Ouverture du navigateur : connectez-vous puis autorisez cet appareil." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening browser: sign in and authorize this device."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouverture du navigateur : connectez-vous puis autorisez cet appareil."
+          }
+        }
+      }
+    },
     "PAUSE" : {
       "localizations" : {
         "en" : {
@@ -1301,6 +1814,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photothèque"
+          }
+        }
+      }
+    },
+    "Plus tard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus tard"
           }
         }
       }
@@ -1371,6 +1900,38 @@
         }
       }
     },
+    "Réponse HTTP inattendue du serveur de release (%lld)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unexpected HTTP response from the release server (%lld)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réponse HTTP inattendue du serveur de release (%lld)."
+          }
+        }
+      }
+    },
+    "Réponse invalide du serveur lors du flux de connexion." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid server response during the sign-in flow."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réponse invalide du serveur lors du flux de connexion."
+          }
+        }
+      }
+    },
     "Réponse WebDAV invalide: %@" : {
       "localizations" : {
         "en" : {
@@ -1416,6 +1977,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reprise de la synchronisation."
+          }
+        }
+      }
+    },
+    "Se connecter via le navigateur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in via browser"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter via le navigateur"
           }
         }
       }
@@ -1630,6 +2207,22 @@
         }
       }
     },
+    "Téléchargement de %@..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading %@..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargement de %@..."
+          }
+        }
+      }
+    },
     "Test en cours..." : {
       "localizations" : {
         "en" : {
@@ -1715,6 +2308,22 @@
       "comment" : "A label for the \"Daily\" option in the \"Verification frequency\" picker.",
       "isCommentAutoGenerated" : true
     },
+    "Une nouvelle version (%@) est disponible. La télécharger et l'installer ? L'application redémarrera automatiquement." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new build (%@) is available. Download and install it? The app will restart automatically."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une nouvelle version (%@) est disponible. La télécharger et l'installer ? L'application redémarrera automatiquement."
+          }
+        }
+      }
+    },
     "Upload de %@ (%@)..." : {
       "localizations" : {
         "en" : {
@@ -1731,6 +2340,22 @@
         }
       }
     },
+    "URL de la release invalide." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid release URL."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL de la release invalide."
+          }
+        }
+      }
+    },
     "URL du serveur (ex: https://cloud.exemple.dev)" : {
       "localizations" : {
         "en" : {
@@ -1743,6 +2368,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URL du serveur (ex: https://cloud.exemple.dev)"
+          }
+        }
+      }
+    },
+    "URL du serveur Nextcloud invalide." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid Nextcloud server URL."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL du serveur Nextcloud invalide."
           }
         }
       }
@@ -1827,6 +2468,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vérification de la sauvegarde..."
+          }
+        }
+      }
+    },
+    "Vérification des mises à jour impossible : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update check unavailable: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérification des mises à jour impossible : %@"
           }
         }
       }
@@ -1927,362 +2584,43 @@
       "comment" : "A toggle that enables automatic verification of the backup's integrity.",
       "isCommentAutoGenerated" : true
     },
+    "Vérifier les mises à jour au lancement" : {},
     "Vérifier maintenant" : {
       "comment" : "A button to check the integrity of the backup now.",
       "isCommentAutoGenerated" : true
     },
-    "WARN" : {
-      "comment" : "A label for a warning log level.",
-      "isCommentAutoGenerated" : true
-    },
-    "URL de la release invalide." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URL de la release invalide."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid release URL."
-          }
-        }
-      }
-    },
-    "Réponse HTTP inattendue du serveur de release (%lld)." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réponse HTTP inattendue du serveur de release (%lld)."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unexpected HTTP response from the release server (%lld)."
-          }
-        }
-      }
-    },
-    "Aucun binaire de mise à jour pour cette architecture (%@)." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun binaire de mise à jour pour cette architecture (%@)."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No update binary for this architecture (%@)."
-          }
-        }
-      }
-    },
-    "Empreinte SHA-256 absente de la release : mise à jour refusée." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empreinte SHA-256 absente de la release : mise à jour refusée."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SHA-256 checksum missing from release: update refused."
-          }
-        }
-      }
-    },
-    "Empreinte SHA-256 incorrecte : fichier téléchargé corrompu ou compromis." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empreinte SHA-256 incorrecte : fichier téléchargé corrompu ou compromis."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SHA-256 checksum mismatch: downloaded file corrupted or compromised."
-          }
-        }
-      }
-    },
-    "Échec de la décompression de la mise à jour." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de la décompression de la mise à jour."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to decompress the update."
-          }
-        }
-      }
-    },
-    "Application introuvable dans l'archive de mise à jour." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Application introuvable dans l'archive de mise à jour."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Application not found in the update archive."
-          }
-        }
-      }
-    },
-    "Impossible d'écrire dans %@ : autorisations insuffisantes." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d'écrire dans %@ : autorisations insuffisantes."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cannot write to %@: insufficient permissions."
-          }
-        }
-      }
-    },
-    "Erreur réseau : %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur réseau : %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Network error: %@"
-          }
-        }
-      }
-    },
-    "Téléchargement de %@..." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Téléchargement de %@..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading %@..."
-          }
-        }
-      }
-    },
-    "Empreinte SHA-256 vérifiée, installation..." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empreinte SHA-256 vérifiée, installation..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SHA-256 checksum verified, installing..."
-          }
-        }
-      }
-    },
-    "Mise à jour installée, redémarrage..." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour installée, redémarrage..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update installed, restarting..."
-          }
-        }
-      }
-    },
     "Vous êtes à jour (dernière version installée)." : {
       "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous êtes à jour (dernière version installée)."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "You are up to date (latest build installed)."
           }
-        }
-      }
-    },
-    "Échec de la recherche de mise à jour : %@" : {
-      "localizations" : {
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Échec de la recherche de mise à jour : %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update check failed: %@"
+            "value" : "Vous êtes à jour (dernière version installée)."
           }
         }
       }
     },
-    "Mise à jour disponible" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour disponible"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update available"
-          }
-        }
-      }
+    "WARN" : {
+      "comment" : "A label for a warning log level.",
+      "isCommentAutoGenerated" : true
     },
-    "Une nouvelle version (%@) est disponible. La télécharger et l'installer ? L'application redémarrera automatiquement." : {
+    "Nom de fichier nettoyé pour compatibilité : %@ → %@" : {
       "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une nouvelle version (%@) est disponible. La télécharger et l'installer ? L'application redémarrera automatiquement."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A new build (%@) is available. Download and install it? The app will restart automatically."
+            "value" : "Filename sanitized for compatibility: %@ → %@"
           }
-        }
-      }
-    },
-    "Mettre à jour et redémarrer" : {
-      "localizations" : {
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mettre à jour et redémarrer"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update and restart"
-          }
-        }
-      }
-    },
-    "Plus tard" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus tard"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
-          }
-        }
-      }
-    },
-    "Mise à jour %@ reportée." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour %@ reportée."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update %@ postponed."
-          }
-        }
-      }
-    },
-    "Échec de l'installation de la mise à jour : %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de l'installation de la mise à jour : %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update installation failed: %@"
-          }
-        }
-      }
-    },
-    "Mise à jour disponible : %@. Menu → « Rechercher une mise à jour »." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour disponible : %@. Menu → « Rechercher une mise à jour »."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update available: %@. Menu → “Check for updates”."
-          }
-        }
-      }
-    },
-    "Vérification des mises à jour impossible : %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérification des mises à jour impossible : %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update check unavailable: %@"
+            "value" : "Nom de fichier nettoyé pour compatibilité : %@ → %@"
           }
         }
       }

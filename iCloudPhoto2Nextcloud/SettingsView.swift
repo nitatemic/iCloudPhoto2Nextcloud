@@ -5,6 +5,7 @@
 
 import SwiftUI
 import ServiceManagement
+import AppKit
 
 public struct SettingsView: View {
     @Bindable var engine = SyncEngine.shared
@@ -20,6 +21,11 @@ public struct SettingsView: View {
     @State private var isTestingConnection = false
     @State private var testResult: ConnectionTestResult?
     @State private var isVerifying = false
+    
+    /// Flux de connexion via navigateur (sans mot de passe d'application saisi à la main).
+    @State private var isLoginFlowActive = false
+    @State private var loginFlowMessage: String?
+    @State private var loginFlowTask: Task<Void, Never>?
     
     @State private var launchAtLogin: Bool = false
     @State private var checkUpdatesOnLaunch: Bool = true
@@ -62,6 +68,36 @@ public struct SettingsView: View {
                 SecureField("Mot de passe d'application (App Password)", text: $appPassword)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: appPassword) { scheduleSave() }
+                
+                Divider()
+                    .padding(.vertical, 4)
+                
+                HStack {
+                    Button(action: startBrowserLogin) {
+                        if isLoginFlowActive {
+                            HStack(spacing: 6) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Connexion en cours...")
+                            }
+                        } else {
+                            Label("Se connecter via le navigateur", systemImage: "person.badge.key")
+                        }
+                    }
+                    .disabled(isLoginFlowActive || serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    
+                    if isLoginFlowActive {
+                        Button("Annuler") {
+                            loginFlowTask?.cancel()
+                        }
+                    }
+                }
+                
+                if let message = loginFlowMessage {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 HStack {
                     Button(action: testConnection) {
@@ -276,6 +312,54 @@ public struct SettingsView: View {
             guard !Task.isCancelled else { return }
             applySettings()
         }
+    }
+    
+    /// Lance le flux de connexion officiel de Nextcloud : ouvre le navigateur où
+    /// l'utilisateur s'authentifie et autorise l'appareil, puis récupère le mot de
+    /// passe d'application généré (aucune saisie manuelle nécessaire).
+    private func startBrowserLogin() {
+        var normalizedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !normalizedURL.isEmpty && !normalizedURL.lowercased().hasPrefix("http://") && !normalizedURL.lowercased().hasPrefix("https://") {
+            normalizedURL = "https://" + normalizedURL
+            self.serverURL = normalizedURL
+        }
+        guard NextcloudLoginFlow.normalizedBaseURL(from: normalizedURL) != nil else {
+            loginFlowMessage = String(localized: "URL du serveur Nextcloud invalide.")
+            return
+        }
+        
+        isLoginFlowActive = true
+        loginFlowMessage = nil
+        testResult = nil
+        engine.log(String(localized: "Démarrage du flux de connexion via navigateur vers \(normalizedURL)..."), level: .info)
+        
+        let task = Task {
+            do {
+                let session = try await NextcloudLoginFlow.start(serverURL: normalizedURL)
+                self.loginFlowMessage = String(localized: "Ouverture du navigateur : connectez-vous puis autorisez cet appareil.")
+                guard NSWorkspace.shared.open(session.loginURL) else {
+                    throw LoginFlowError.browserFailed
+                }
+                self.loginFlowMessage = String(localized: "En attente d'autorisation dans le navigateur...")
+                let credentials = try await NextcloudLoginFlow.poll(session: session)
+                
+                self.serverURL = credentials.serverURL.isEmpty ? self.serverURL : credentials.serverURL
+                self.username = credentials.loginName
+                self.appPassword = credentials.appPassword
+                applySettings()
+                self.loginFlowMessage = String(localized: "Connexion réussie : appareil ajouté dans Nextcloud.")
+                engine.log(String(localized: "Connexion via navigateur réussie pour \(credentials.loginName)."), level: .success)
+                testConnection()
+            } catch is CancellationError {
+                self.loginFlowMessage = String(localized: "Connexion annulée.")
+                engine.log(String(localized: "Flux de connexion annulé par l'utilisateur."), level: .info)
+            } catch {
+                self.loginFlowMessage = error.localizedDescription
+                engine.log(String(localized: "Échec du flux de connexion : \(error.localizedDescription)"), level: .error)
+            }
+            self.isLoginFlowActive = false
+        }
+        loginFlowTask = task
     }
     
     private func testConnection() {
